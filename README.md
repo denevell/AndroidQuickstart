@@ -20,3 +20,5 @@ Todo:
 - Espresso imports
 - Espresso test
 - Robolectric tests
+- Signing keys
+- Build variants
