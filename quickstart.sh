@@ -42,7 +42,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 
@@ -67,7 +67,7 @@ dependencies {
 }
 
 android {
-        buildToolsVersion "19.0.1"                                                                                                     
+        buildToolsVersion "19.0.2"                                                                                                     
         // Since the build tools auto fail on error, and we're getting werid erros with 0.7 of the build tools
         lintOptions {
 	    disable 'InvalidPackage'
