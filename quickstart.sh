@@ -60,7 +60,7 @@ dependencies {
         compile 'com.google.code.gson:gson:2.2.4'
         compile 'com.android.support:support-v4:19.1.0'
         compile 'com.bugsense.trace:bugsense:3.6'
-        compile 'com.google.android.gms:play-services:4.2.42'
+        compile 'com.google.android.gms:play-services:4.3.23'
         compile 'org.mockito:mockito-all:1.9.5'
         compile 'com.squareup:otto:1.3.4'
         compile 'org.apache.commons:commons-lang3:3.1'
@@ -125,7 +125,7 @@ END_HEREDOC
 echo "###---> Application class"
 
 cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/Application.java
-package $PROJECT_PACKAGE_BASE_JAVA.Application;
+package $PROJECT_PACKAGE_BASE_JAVA;
 
 import android.util.Log;
 
