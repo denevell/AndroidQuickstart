@@ -1,6 +1,12 @@
 Android Quickstart
 ==================
 
+Features:
+
+- Gradle setup
+- Main Activity Fragment class and layout
+- Application class
+
 Script to quickly setup an Android project
 
 	PROJECT_NAME=AndroidProject PROJECT_PACKAGE_JAVA=org.denevell PROJECT_PACKAGE_NAME=AndroidProject bash quickstart.sh

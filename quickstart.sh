@@ -55,14 +55,14 @@ repositories {
 
 apply plugin: 'android'
 dependencies {
-        compile 'com.squareup.dagger:dagger-compiler:1.1.0'
-        compile 'com.squareup.dagger:dagger:1.1.0'
-        compile 'com.google.code.gson:gson:2.2.4'
         compile 'com.android.support:support-v4:19.1.0'
-        compile 'com.bugsense.trace:bugsense:3.6'
         compile 'com.google.android.gms:play-services:4.3.23'
-        compile 'org.mockito:mockito-all:1.9.5'
+        compile 'com.google.code.gson:gson:2.2.4'
+        compile 'com.squareup.dagger:dagger-compiler:1.2.1'
+        compile 'com.squareup.dagger:dagger:1.2.1'
         compile 'com.squareup:otto:1.3.4'
+        compile 'com.bugsense.trace:bugsense:3.6'
+        compile 'org.mockito:mockito-all:1.9.5'
         compile 'org.apache.commons:commons-lang3:3.1'
 }
 
@@ -70,6 +70,7 @@ android {
         buildToolsVersion "19.0.1"                                                                                                     
         // Since the build tools auto fail on error, and we're getting werid erros with 0.7 of the build tools
         lintOptions {
+	    disable 'InvalidPackage'
             abortOnError false
             textReport true
             textOutput 'stdout'
