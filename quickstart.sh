@@ -7,7 +7,7 @@ fi
 
 if [ -d $PROJECT_NAME ]; then
 	echo "ERROR: The project directory already exists"
-	exit 1;
+	//exit 1;
 fi
 
 if [[ ! $PROJECT_PACKAGE_NAME ]]; then
@@ -28,8 +28,8 @@ echo "###---> Directory structure"
 
 mkdir $PROJECT_NAME 
 cd $PROJECT_NAME 
-mkdir -p {src/main/java/$PROJECT_PACKAGE_BASE_DIRS/,src/main/res/values,src/main/res/drawable}
-mkdir -p src/main/res/layout/
+mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
+cp -rf ../res src/main/
 
 
 
@@ -58,7 +58,7 @@ dependencies {
         compile 'com.squareup.dagger:dagger-compiler:1.1.0'
         compile 'com.squareup.dagger:dagger:1.1.0'
         compile 'com.google.code.gson:gson:2.2.4'
-        compile 'com.android.support:support-v4:19.0.0'
+        compile 'com.android.support:support-v4:19.1.0'
         compile 'com.bugsense.trace:bugsense:3.6'
         compile 'com.google.android.gms:play-services:4.2.42'
         compile 'org.mockito:mockito-all:1.9.5'
@@ -105,7 +105,9 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
 
     <application
         android:allowBackup="true"
-        android:name="$PROJECT_PACKAGE_BASE_JAVA">
+        android:name="$PROJECT_PACKAGE_BASE_JAVA.Application"
+	android:icon="@drawable/ic_launcher"
+	>
         <activity
             android:name="$PROJECT_PACKAGE_BASE_JAVA.MainPageActivity"
             android:label="APP NAME" >
@@ -116,6 +118,26 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
         </activity>
     </application>
 </manifest>
+END_HEREDOC
+
+
+
+echo "###---> Application class"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/Application.java
+package $PROJECT_PACKAGE_BASE_JAVA.Application;
+
+import android.util.Log;
+
+public class Application extends android.app.Application {
+    protected static final String TAG = "$PROJECT_NAME Application class";
+
+    @Override
+    public void onCreate() {
+	super.onCreate();
+    }
+
+}
 END_HEREDOC
 
 
