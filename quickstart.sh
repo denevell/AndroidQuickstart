@@ -29,6 +29,10 @@ echo "###---> Directory structure"
 mkdir $PROJECT_NAME 
 cd $PROJECT_NAME 
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
+if [ -h res ]; then 
+	echo "Deleted symlink"
+	rm res 
+fi
 cp -r ../res src/main/
 
 
@@ -82,6 +86,17 @@ END_HEREDOC
 
 
 
+echo "###---> strings.xml file"
+
+cat << END_HEREDOC > src/main/res/values/strings.xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">$PROJECT_NAME</string>
+</resources>
+END_HEREDOC
+
+
+
 echo "###---> Gradle properities file, gradle daemon and parallel execution"
 
 cat << END_HEREDOC > gradle.properties
@@ -111,7 +126,7 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
 	>
         <activity
             android:name="$PROJECT_PACKAGE_BASE_JAVA.MainPageActivity"
-            android:label="APP NAME" >
+            android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
