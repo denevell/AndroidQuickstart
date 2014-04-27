@@ -6,6 +6,7 @@ Features:
 - Gradle setup
 - Main Activity Fragment class and layout
 - Application class
+- Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
 
 Script to quickly setup an Android project
 
@@ -14,7 +15,6 @@ Script to quickly setup an Android project
 Todo:
 
 - Check for ANDROID_HOME on startup
-- Eclipse integration
 - Two fragments
 - Button to go to other fragment
 - Espresso imports
