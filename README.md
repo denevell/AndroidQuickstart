@@ -5,9 +5,10 @@ Features:
 
 - Gradle setup
 - Build types / variants
+- Signing release build
+- Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
 - Main Activity Fragment class and layout
 - Application class
-- Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
 
 Script to quickly setup an Android project
 
@@ -20,4 +21,5 @@ Todo:
 - Espresso imports
 - Espresso test
 - Robolectric tests
-- Signing keys
+- Product flavours
+- Custom view

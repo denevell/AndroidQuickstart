@@ -29,6 +29,8 @@ PROJECT_PACKAGE_DIRS=$(echo $PROJECT_PACKAGE_JAVA | sed 's#\.#/#')/
 PROJECT_PACKAGE_BASE_JAVA=${PROJECT_PACKAGE_JAVA}.${PROJECT_PACKAGE_NAME}
 PROJECT_PACKAGE_BASE_DIRS=${PROJECT_PACKAGE_DIRS}${PROJECT_PACKAGE_NAME}
 
+
+
 echo "###---> Directory structure" 
 
 mkdir $PROJECT_NAME 
@@ -40,6 +42,19 @@ if [ -h res ]; then
 	rm res 
 fi
 cp -r ../res src/main/
+
+
+
+echo "###---> Creating release keystore, release.keystore, and signing.properties"
+
+keytool -genkey -v -keystore release.keystore -alias release.keystore -keyalg RSA -keysize 2048 -validity 10000 -keypass android -storepass android -dname "cn=Android Android, ou=Android, o=Android, c=AN"
+
+cat << END_HEREDOC > signing.properties
+keystore=release.keystore
+keystore.password=android
+keyAlias=release.keystore
+keyPassword=android
+END_HEREDOC
 
 
 
@@ -86,12 +101,29 @@ android {
             textOutput 'stdout'
             htmlReport true
         }
-        buildTypes {
-		otherBuildType.initWith(buildTypes.debug);
-		otherBuildType {
-			packageNameSuffix ".otherBuildType"
-		}
+
+        Properties props = new Properties()
+        props.load(new FileInputStream(file("signing.properties")))
+
+        signingConfigs {
+                release {
+                        storeFile file(props['keystore'])
+                        storePassword props['keystore.password']
+                        keyAlias props['keyAlias']
+                        keyPassword props['keyPassword']
+                }
         }
+
+        buildTypes {
+                release {
+                        signingConfig signingConfigs.release
+                }
+                otherBuildType.initWith(buildTypes.release);
+                otherBuildType {
+                        packageNameSuffix ".otherBuildType"
+                }
+        }
+
         compileSdkVersion 19
 }
 END_HEREDOC
