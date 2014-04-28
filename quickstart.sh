@@ -24,6 +24,7 @@ if [[ ! $MAPS_V2_KEY ]]; then
 	echo "ERROR: MAPS_V2_KEY must be set, i.e. the key your get from the Google APIs console when entering your debug key."
 	echo "Your debug key (from ~/.android/debug.keystore) is: "
 	keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep SHA1 | sed 's/.*SHA1: \(.*\)$/\1/'
+	echo "ERROR: Enter rubbish in this parameter and the map won't show"
 	exit 1;
 fi
 
