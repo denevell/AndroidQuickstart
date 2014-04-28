@@ -7,6 +7,7 @@ Features:
 - Build types / variants
 - Signing release build
 - Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
+- Custom view with attributes
 - Main Activity Fragment class and layout
 - Application class
 
@@ -22,4 +23,3 @@ Todo:
 - Espresso test
 - Robolectric tests
 - Product flavours
-- Custom view

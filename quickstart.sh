@@ -136,6 +136,8 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">$PROJECT_NAME</string>
+    <string name="custom_view_checkbox_text">Hiya</string>
+    <string name="custom_view_greeting">Why hello!</string>
 </resources>
 END_HEREDOC
 
@@ -333,11 +335,93 @@ END_HEREDOC
 
 
 
+echo "###---> Custom View class"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/CustomView.java
+package $PROJECT_PACKAGE_BASE_JAVA;
+
+import android.content.Context;
+import android.util.AttributeSet;
+import android.view.LayoutInflater;
+import android.widget.FrameLayout;
+import android.widget.Toast;
+import android.content.res.TypedArray;
+
+
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+public class CustomView extends FrameLayout {
+
+	public CustomView(Context context, AttributeSet attrs, int defStyle) {
+		super(context, attrs, defStyle);
+	}
+
+	public CustomView(Context context, AttributeSet attrs) {
+		this(context, attrs, 0);
+		LayoutInflater.from(context).inflate(R.layout.custom_view, this, true);
+		TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.MyCustomView, 0, 0);
+        	try {
+        		String myString = a.getString(R.styleable.MyCustomView_my_attr);
+        		Toast.makeText(getContext(), myString, Toast.LENGTH_LONG).show();
+        	} finally {
+            		a.recycle();
+       		}
+	}
+
+	public CustomView(Context context) {
+		super(context);
+	}
+
+}
+END_HEREDOC
+
+
+
+echo "###---> Custom View layout "
+
+cat << END_HEREDOC > src/main/res/layout/custom_view.xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/custom_view_relativelayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+    <CheckBox
+        android:id="@+id/custom_view_checkbox"
+        android:checked="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:text="@string/custom_view_checkbox_text" />
+
+</RelativeLayout>
+END_HEREDOC
+
+
+
+echo "###---> Custom View xml attributs"
+
+cat << END_HEREDOC > src/main/res/values/attrs.xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+     <declare-styleable name="MyCustomView">
+        <attr name="my_attr" format="string"></attr>
+     </declare-styleable>
+    
+</resources>
+END_HEREDOC
+
+
+
 echo "###---> Main page layout"
 
 cat << END_HEREDOC > src/main/res/layout/activity_main.xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_fragment_holder"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -348,6 +432,12 @@ cat << END_HEREDOC > src/main/res/layout/activity_main.xml
         android:layout_width="match_parent"
         android:layout_height="match_parent"
     />
+    <$PROJECT_PACKAGE_BASE_JAVA.CustomView 
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        app:my_attr="@string/custom_view_greeting"
+        />
 
 </RelativeLayout>
 END_HEREDOC
