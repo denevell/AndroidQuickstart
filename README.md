@@ -14,7 +14,6 @@ Script to quickly setup an Android project
 
 Todo:
 
-- Check for ANDROID_HOME on startup
 - Two fragments
 - Button to go to other fragment
 - Espresso imports

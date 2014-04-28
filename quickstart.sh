@@ -5,6 +5,11 @@ if [[ ! $PROJECT_NAME ]]; then
 	exit 1;
 fi
 
+if [ -z "$ANDROID_HOME" ]; then
+	echo "ERROR: ANDROID_HOME is unset or empty"
+	exit 1;
+fi
+
 if [ -d $PROJECT_NAME ]; then
 	echo "WARNING: The project directory already exists"
 	#exit 1;
