@@ -20,6 +20,13 @@ if [[ ! $PROJECT_PACKAGE_NAME ]]; then
 	exit 1;
 fi
 
+if [[ ! $MAPS_V2_KEY ]]; then
+	echo "ERROR: MAPS_V2_KEY must be set, i.e. the key your get from the Google APIs console when entering your debug key."
+	echo "Your debug key (from ~/.android/debug.keystore) is: "
+	keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android | grep SHA1 | sed 's/.*SHA1: \(.*\)$/\1/'
+	exit 1;
+fi
+
 if [[ ! $PROJECT_PACKAGE_JAVA ]]; then
 	echo "ERROR: PROJECT_PACKAGE_JAVA environement var isn't set, i.e. com.example"
 	exit 1;
@@ -36,6 +43,7 @@ echo "###---> Directory structure"
 mkdir $PROJECT_NAME 
 cd $PROJECT_NAME 
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
+mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils
 mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
 	echo "Deleted symlink"
@@ -138,6 +146,7 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="app_name">$PROJECT_NAME</string>
     <string name="custom_view_checkbox_text">Hiya</string>
     <string name="custom_view_greeting">Why hello!</string>
+    <string name="goto_maps_button">Map</string>
 </resources>
 END_HEREDOC
 
@@ -172,11 +181,22 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
         android:minSdkVersion="14"
         android:targetSdkVersion="19" />
 
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true"/>
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+
     <application
         android:allowBackup="true"
         android:name="$PROJECT_PACKAGE_BASE_JAVA.Application"
 	android:icon="@drawable/ic_launcher"
 	>
+        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="$MAPS_V2_KEY" />
         <activity
             android:name="$PROJECT_PACKAGE_BASE_JAVA.MainPageActivity"
             android:label="@string/app_name" >
@@ -184,6 +204,10 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name="$PROJECT_PACKAGE_BASE_JAVA.MapActivity"
+            android:label="@string/app_name" >
         </activity>
     </application>
 </manifest>
@@ -311,10 +335,15 @@ echo "###---> Main Activity"
 cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/MainPageActivity.java
 package $PROJECT_PACKAGE_BASE_JAVA;
 
-import android.support.v4.app.FragmentActivity;
 import $PROJECT_PACKAGE_BASE_JAVA.R;
-import android.util.Log;
+
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 
 public class MainPageActivity extends FragmentActivity {
 
@@ -325,6 +354,12 @@ public class MainPageActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_main);
+            Button b = (Button) findViewById(R.id.main_activity_gotomaps_button);
+            b.setOnClickListener(new OnClickListener() {
+				@Override public void onClick(View v) {
+					startActivity(new Intent(MainPageActivity.this, MapActivity.class));
+				}
+			});
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse activity", e);
             return;
@@ -335,18 +370,49 @@ END_HEREDOC
 
 
 
+echo "###---> Main page layout"
+
+cat << END_HEREDOC > src/main/res/layout/activity_main.xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main_activity_relativelayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+    <$PROJECT_PACKAGE_BASE_JAVA.CustomView 
+        android:id="@+id/main_activity_customview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        app:my_attr="@string/custom_view_greeting"
+        />
+     <Button
+        android:id="@+id/main_activity_gotomaps_button"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/main_activity_customview"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        android:text="@string/goto_maps_button" />
+
+</RelativeLayout>
+END_HEREDOC
+
+
+
 echo "###---> Custom View class"
 
 cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/CustomView.java
 package $PROJECT_PACKAGE_BASE_JAVA;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
-import android.widget.Toast;
-import android.content.res.TypedArray;
-
 
 import $PROJECT_PACKAGE_BASE_JAVA.R;
 
@@ -358,14 +424,15 @@ public class CustomView extends FrameLayout {
 
 	public CustomView(Context context, AttributeSet attrs) {
 		this(context, attrs, 0);
-		LayoutInflater.from(context).inflate(R.layout.custom_view, this, true);
+		View v = LayoutInflater.from(context).inflate(R.layout.custom_view, this, true);
 		TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.MyCustomView, 0, 0);
-        	try {
-        		String myString = a.getString(R.styleable.MyCustomView_my_attr);
-        		Toast.makeText(getContext(), myString, Toast.LENGTH_LONG).show();
-        	} finally {
-            		a.recycle();
-       		}
+		CheckBox bx = (CheckBox) v.findViewById(R.id.custom_view_checkbox);
+		try {
+			String myString = a.getString(R.styleable.MyCustomView_my_attr);
+			bx.setText(myString);
+		} finally {
+			a.recycle();
+		}
 	}
 
 	public CustomView(Context context) {
@@ -373,6 +440,7 @@ public class CustomView extends FrameLayout {
 	}
 
 }
+
 END_HEREDOC
 
 
@@ -416,28 +484,130 @@ END_HEREDOC
 
 
 
-echo "###---> Main page layout"
+echo "###---> Class that fixes black artifacts on maps fragment"
 
-cat << END_HEREDOC > src/main/res/layout/activity_main.xml
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils/FixForBlackArtifactsMapFragment.java
+package $PROJECT_PACKAGE_BASE_JAVA.utils;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.SurfaceView;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.FrameLayout;
+
+import com.google.android.gms.maps.SupportMapFragment;
+
+public class FixForBlackArtifactsMapFragment extends SupportMapFragment {
+	
+    @SuppressWarnings("deprecation")
+    @Override
+    public View onCreateView(LayoutInflater inflater, 
+                             ViewGroup container, 
+                             Bundle savedInstanceState) {
+
+        View view = super.onCreateView(inflater, container, savedInstanceState);
+
+        // Fix for black background on devices < 4.1
+        if (android.os.Build.VERSION.SDK_INT < 
+            android.os.Build.VERSION_CODES.JELLY_BEAN) {
+            setMapTransparent((ViewGroup) view);
+        }
+        
+        FrameLayout frameLayout = new FrameLayout(getActivity());
+        frameLayout.setBackgroundColor(
+            getResources().getColor(android.R.color.transparent));
+        ((ViewGroup) view).addView(frameLayout, 0,
+            new ViewGroup.LayoutParams(
+                LayoutParams.FILL_PARENT, 
+                LayoutParams.FILL_PARENT
+            )
+        );
+        
+        return view;
+    }
+
+    private void setMapTransparent(ViewGroup group) {
+        int childCount = group.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof ViewGroup) {
+                setMapTransparent((ViewGroup) child);
+            } else if (child instanceof SurfaceView) {
+                child.setBackgroundColor(0x00000000);
+            }
+        }
+    }
+
+}
+END_HEREDOC
+
+
+
+echo "###---> Maps activity"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/MapActivity.java
+package $PROJECT_PACKAGE_BASE_JAVA;
+
+import $PROJECT_PACKAGE_BASE_JAVA.utils.FixForBlackArtifactsMapFragment;
+
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
+
+import com.google.android.gms.maps.SupportMapFragment;
+
+public class MapActivity extends FragmentActivity {
+
+    private static final String TAG = MapActivity.class.getSimpleName();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        try {
+            setContentView(R.layout.activity_map);
+
+            String mapTag = "mapTag";
+            FragmentManager supportFragManager = getSupportFragmentManager();
+			SupportMapFragment possiblyExtantMap = (SupportMapFragment) supportFragManager.findFragmentByTag(mapTag);
+
+            if(possiblyExtantMap==null) {
+            	possiblyExtantMap = new FixForBlackArtifactsMapFragment();
+				FragmentTransaction fragmentTransaction = supportFragManager.beginTransaction();
+                fragmentTransaction.replace(R.id.maps_map_fragment_holder, possiblyExtantMap, mapTag);
+                fragmentTransaction.commit();
+                supportFragManager.executePendingTransactions();
+            }
+
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to parse activity", e);
+            return;
+        }
+    }
+}
+END_HEREDOC
+
+
+
+echo "###---> Layout for maps activity"
+
+cat << END_HEREDOC > src/main/res/layout/activity_map.xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main_fragment_holder"
+    android:id="@+id/maps_relativelayout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
 
     <FrameLayout
-        android:id="@+id/fragment_holder"
+        android:id="@+id/maps_map_fragment_holder"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
     />
-    <$PROJECT_PACKAGE_BASE_JAVA.CustomView 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        app:my_attr="@string/custom_view_greeting"
-        />
 
 </RelativeLayout>
 END_HEREDOC
