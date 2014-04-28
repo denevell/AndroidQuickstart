@@ -34,6 +34,7 @@ echo "###---> Directory structure"
 mkdir $PROJECT_NAME 
 cd $PROJECT_NAME 
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
+mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
 	echo "Deleted symlink"
 	rm res 
@@ -85,6 +86,12 @@ android {
             textOutput 'stdout'
             htmlReport true
         }
+        buildTypes {
+		otherBuildType.initWith(buildTypes.debug);
+		otherBuildType {
+			packageNameSuffix ".otherBuildType"
+		}
+        }
         compileSdkVersion 19
 }
 END_HEREDOC
@@ -97,6 +104,13 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">$PROJECT_NAME</string>
+</resources>
+END_HEREDOC
+
+cat << END_HEREDOC > src/otherBuildType/res/values/strings.xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">${PROJECT_NAME}-Other Build Type</string>
 </resources>
 END_HEREDOC
 

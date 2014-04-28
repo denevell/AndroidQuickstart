@@ -4,6 +4,7 @@ Android Quickstart
 Features:
 
 - Gradle setup
+- Build types / variants
 - Main Activity Fragment class and layout
 - Application class
 - Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
@@ -20,4 +21,3 @@ Todo:
 - Espresso test
 - Robolectric tests
 - Signing keys
-- Build variants
