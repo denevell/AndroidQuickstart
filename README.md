@@ -44,3 +44,12 @@ Todo:
 - Image downloading and caching
 - List view with images
 - Retrofit and Okhttp for networking
+- Intent service
+- Service
+- Endless listview
+- Staggered listview
+- Pull to refresh
+- Fading actionbar
+- Form validation
+- Checks for connectivity
+- Wizard Page adapter
