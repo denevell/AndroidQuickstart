@@ -89,6 +89,7 @@ repositories {
 
 apply plugin: 'android'
 dependencies {
+        compile "com.android.support:appcompat-v7:19.1.0"
         compile 'com.android.support:support-v4:19.1.0'
         compile 'com.google.android.gms:play-services:4.3.23'
         compile 'com.google.code.gson:gson:2.2.4'
@@ -160,7 +161,23 @@ END_HEREDOC
 cat << END_HEREDOC > src/otherBuildType/res/values/strings.xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-<string name="app_name">${PROJECT_NAME}-Other Build Type</string>
+	<string name="app_name">${PROJECT_NAME}-Other Build Type</string>
+</resources>
+END_HEREDOC
+
+
+
+echo "###---> styles.xml"
+
+cat << END_HEREDOC > src/main/res/values/styles.xml
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="AppBaseTheme" parent="@style/Theme.AppCompat.Light">
+    </style>
+
+    <style name="AppTheme" parent="AppBaseTheme">
+    </style>
+
 </resources>
 END_HEREDOC
 
@@ -229,6 +246,7 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
 		<meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="$MAPS_V2_KEY" />
 		<activity
 		    android:name="$PROJECT_PACKAGE_BASE_JAVA.MainPageActivity"
+		    android:theme="@style/AppTheme" 
 		    android:label="@string/app_name" >
 		    <intent-filter>
 			<action android:name="android.intent.action.MAIN" />
@@ -237,14 +255,17 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
 		</activity>
 		<activity
 		    android:name="$PROJECT_PACKAGE_BASE_JAVA.MapActivity"
+		    android:theme="@style/AppTheme" 
 		    android:label="@string/app_name" >
 		</activity>
 		<activity
 		    android:name="$PROJECT_PACKAGE_BASE_JAVA.PreferencesActivity"
+		    android:theme="@style/AppTheme" 
 		    android:label="@string/app_name" >
 		</activity>
 		<activity
 		    android:name="$PROJECT_PACKAGE_BASE_JAVA.LicencesActivity"
+		    android:theme="@style/AppTheme" 
 		    android:label="@string/app_name" >
 		</activity>
 	</application>
@@ -426,7 +447,7 @@ cat << END_HEREDOC > src/main/res/layout/activity_licences.xml
     <LinearLayout
         android:id="@+id/licences_activity_relativelayout"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_height="wrap_content"
         android:orientation="vertical" >
 
         <TextView

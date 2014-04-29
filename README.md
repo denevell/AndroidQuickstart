@@ -5,6 +5,7 @@ Features:
 
 - Gradle setup
 - Google Maps V2
+- Actionbar from compatibility project
 - Custom view with attributes
 - Build types / variants
 - Signing release build
@@ -30,8 +31,8 @@ Android studio integration:
 
 Todo:
 
+- Eclipse projects in a dir
 - View pager
-- Support library actionbar
 - Espresso imports
 - Espresso test
 - Robolectric tests
@@ -50,7 +51,12 @@ Todo:
 - Endless listview
 - Staggered listview
 - Pull to refresh
-- Fading actionbar
 - Form validation
 - Checks for connectivity
 - Wizard Page adapter
+- Actionbar action menu
+- Actionbar tabs
+- Actionbar share provider 
+- Actionbar navigate up
+- Actionbar split bar
+- Fading actionbar
