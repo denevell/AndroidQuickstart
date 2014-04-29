@@ -9,16 +9,16 @@ Features:
 - Custom view with attributes
 - Build types / variants
 - Signing release build
-- Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
+- Eclipse integration
 - Preferences activity
 - Licences activity
-- Main Activity Fragment class and layout
+- Main Activity and layout
 - Application class
 
 Requirements:
 
 - Unix-like OS (Tested on Debian Linux) 
-- Android SDK installed (API 19, Google respositories, Android repository, SDK tools, SDK build tools, SDK platform tools, Support library, Google play services)
+- Android SDK installed (at least API 19, Google respositories, Android repository, SDK tools, SDK build tools, SDK platform tools, Support library, Google play services)
 
 Running:
 
@@ -26,29 +26,30 @@ Running:
 
 Eclipse integration:
 
-- You can import the project into Eclipse as an Android project as normal.
-- You must also import (and have built) all the projects in eclipse_subprojects into your workspace.
+- You must import (and have built) all the projects in eclipse_subprojects into your workspace.
+- You then import the project into Eclipse as an Android project as normal.
 
 Android Studio integration:
 
-- You import the project as a Gradle project
 - You must remove the 'res' and 'AndroidManifest.xml' symlinks else IntelliJ will complain 
+- Then import the project as a Gradle project
 
 Todo:
 
 - View pager
+- Smooth view pager transitions
+- Navigation menu, left and right
+- List view with images
 - Swipe to refresh
+- Rotating the maps fragment / extant fragment
 - Espresso imports
 - Espresso test
 - Robolectric tests
 - Product flavours
 - Push messaging
 - Production key for maps
-- Navigation menu 
-- Rotating the maps fragment / extant fragment
 - Figure out best navigation (fragments, activities) pattern
 - Image downloading and caching
-- List view with images
 - Retrofit and Okhttp for networking
 - Intent service
 - Service
