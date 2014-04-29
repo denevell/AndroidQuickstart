@@ -31,6 +31,7 @@ Todo:
 
 - View pager
 - Support library actionbar
+- Licences page
 - Espresso imports
 - Espresso test
 - Robolectric tests
