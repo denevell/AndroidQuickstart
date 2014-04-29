@@ -10,6 +10,7 @@ Features:
 - Signing release build
 - Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
 - Preferences activity
+- Licences activity
 - Main Activity Fragment class and layout
 - Application class
 
@@ -31,7 +32,6 @@ Todo:
 
 - View pager
 - Support library actionbar
-- Licences page
 - Espresso imports
 - Espresso test
 - Robolectric tests

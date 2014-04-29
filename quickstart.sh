@@ -149,8 +149,11 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="custom_view_greeting">Why hello!</string>
     <string name="goto_maps_button">Map</string>
     <string name="preferences_option">Preferences</string>
+    <string name="licences_option">Licences</string>
     <string name="settings_checkbox_key">settings_checkbox_key</string>
     <string name="settings_edittext_key">settings_edittext_key</string>
+    <string name="google_play_licence_info_header">Google Play Services Licence Info</string>
+    <string name="legal_text_and_licences">Legal text and licences</string>
 </resources>
 END_HEREDOC
 
@@ -174,6 +177,11 @@ cat << END_HEREDOC > src/main/res/menu/main_activity_options.xml
 		android:id="@+id/main_activity_options_action_preferences"
 		android:showAsAction="never"
 		android:title="@string/preferences_option" 
+		/>
+		<item
+		android:id="@+id/main_activity_options_action_licences"
+		android:showAsAction="never"
+		android:title="@string/licences_option" 
 		/>
 
 	</menu>
@@ -233,6 +241,10 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
 		</activity>
 		<activity
 		    android:name="$PROJECT_PACKAGE_BASE_JAVA.PreferencesActivity"
+		    android:label="@string/app_name" >
+		</activity>
+		<activity
+		    android:name="$PROJECT_PACKAGE_BASE_JAVA.LicencesActivity"
 		    android:label="@string/app_name" >
 		</activity>
 	</application>
@@ -355,6 +367,91 @@ public class Application extends android.app.Application {
 END_HEREDOC
 
 
+echo "###---> Licences activity"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/LicencesActivity.java
+package org.denevell.AndroidProject;
+
+import com.google.android.gms.common.GooglePlayServicesUtil;
+
+import android.app.AlertDialog;
+import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+
+
+public class LicencesActivity extends FragmentActivity {
+
+    private static final String TAG = MainPageActivity.class.getSimpleName();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        try {
+            setContentView(R.layout.activity_licences);
+            View tv = findViewById(R.id.licences_activity_google_play_licence_info_header_textview);
+            tv.setOnClickListener(new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+                	String licenceInfo = GooglePlayServicesUtil.getOpenSourceSoftwareLicenseInfo(getApplicationContext());
+                	AlertDialog.Builder licenceDialog = new AlertDialog.Builder(LicencesActivity.this);
+			licenceDialog.setTitle(getString(R.string.google_play_licence_info_header));
+			licenceDialog.setMessage(licenceInfo);
+			licenceDialog.show();
+		}
+	    });
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to parse activity", e);
+            return;
+        }
+    }
+
+}
+END_HEREDOC
+
+
+
+echo "###---> Licences layout file"
+
+cat << END_HEREDOC > src/main/res/layout/activity_licences.xml
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/licences_activity_scrollview"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" >
+
+    <LinearLayout
+        android:id="@+id/licences_activity_relativelayout"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical" >
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/legal_text_and_licences"
+            android:gravity="center"
+            android:padding="5dp"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <Button
+            android:id="@+id/licences_activity_google_play_licence_info_header_textview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/google_play_licence_info_header"
+            android:textAppearance="?android:attr/textAppearanceMedium" 
+            />
+
+    </LinearLayout>
+
+</ScrollView>
+END_HEREDOC
+
+
 
 echo "###---> Preferences activity"
 
@@ -465,7 +562,9 @@ public class MainPageActivity extends FragmentActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
     	if(item.getItemId() == R.id.main_activity_options_action_preferences) {
-		startActivity(new Intent(MainPageActivity.this, PreferencesActivity.class));
+    		startActivity(new Intent(MainPageActivity.this, PreferencesActivity.class));
+    	} else if(item.getItemId() == R.id.main_activity_options_action_licences) {
+    		startActivity(new Intent(MainPageActivity.this, LicencesActivity.class));
     	}
     	return super.onOptionsItemSelected(item);
     }
