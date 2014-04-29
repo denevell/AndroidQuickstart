@@ -41,3 +41,6 @@ Todo:
 - Styles / themes
 - Rotating the maps fragment / extant fragment
 - Figure out best navigation (fragments, activities) pattern
+- Image downloading and caching
+- List view with images
+- Retrofit and Okhttp for networking
