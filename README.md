@@ -29,13 +29,15 @@ Android studio integration:
 
 Todo:
 
-- Fragments navigation
+- View pager
+- Support library actionbar
 - Espresso imports
 - Espresso test
 - Robolectric tests
 - Product flavours
 - Push messaging
 - Production key for maps
-- Support library actionbar
 - Navigation bar
 - Styles / themes
+- Rotating the maps fragment / extant fragment
+- Figure out best navigation (fragments, activities) pattern
