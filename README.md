@@ -9,6 +9,7 @@ Features:
 - Build types / variants
 - Signing release build
 - Eclipse integration (two symlinks in the root folder will mean Android Studio will complain)
+- Preferences activity
 - Main Activity Fragment class and layout
 - Application class
 
@@ -21,15 +22,20 @@ Eclipse integration:
 - You can import the project into Eclipse as an Android project as normal.
 - You must also import google_maps_project from $ANDROID_HOME/extras/google/google_play_services/libproject/google-play-services_lib into your workspace and add it as a library into the main project
 
+Android studio integration:
+
+- You import the project as a Gradle project
+- You must remove the 'res' and 'AndroidManifest.xml' symlinks else IntelliJ will complain 
+
 Todo:
 
-- Two fragments
-- Button to go to other fragment
+- Fragments navigation
 - Espresso imports
 - Espresso test
 - Robolectric tests
 - Product flavours
-- Push
+- Push messaging
 - Production key for maps
-- Check for maps library project in $ANDROID_HOME
-- Make a new eclipse workspace with the main project and google play services
+- Support library actionbar
+- Navigation bar
+- Styles / themes

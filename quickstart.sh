@@ -148,14 +148,35 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="custom_view_checkbox_text">Hiya</string>
     <string name="custom_view_greeting">Why hello!</string>
     <string name="goto_maps_button">Map</string>
+    <string name="preferences_option">Preferences</string>
+    <string name="settings_checkbox_key">settings_checkbox_key</string>
+    <string name="settings_edittext_key">settings_edittext_key</string>
 </resources>
 END_HEREDOC
 
 cat << END_HEREDOC > src/otherBuildType/res/values/strings.xml
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">${PROJECT_NAME}-Other Build Type</string>
+<string name="app_name">${PROJECT_NAME}-Other Build Type</string>
 </resources>
+END_HEREDOC
+
+
+
+echo "###---> Menu xml file for main activity"
+
+cat << END_HEREDOC > src/main/res/menu/main_activity_options.xml
+<menu 
+	xmlns:android="http://schemas.android.com/apk/res/android" 
+	xmlns:tools="http://schemas.android.com/tools">
+
+		<item
+		android:id="@+id/main_activity_options_action_preferences"
+		android:showAsAction="never"
+		android:title="@string/preferences_option" 
+		/>
+
+	</menu>
 END_HEREDOC
 
 
@@ -174,43 +195,47 @@ echo "###---> Android Manifest"
 cat << END_HEREDOC > src/main/AndroidManifest.xml 
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="$PROJECT_PACKAGE_BASE_JAVA"
-    android:versionCode="1"
-    android:versionName="0.0.1" >
+	package="$PROJECT_PACKAGE_BASE_JAVA"
+	android:versionCode="1"
+	android:versionName="0.0.1" >
 
-    <uses-sdk
-        android:minSdkVersion="14"
-        android:targetSdkVersion="19" />
+	<uses-sdk
+		android:minSdkVersion="14"
+		android:targetSdkVersion="19" />
 
-    <uses-feature
-        android:glEsVersion="0x00020000"
-        android:required="true"/>
+	<uses-feature
+		android:glEsVersion="0x00020000"
+		android:required="true"/>
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
+	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+	<uses-permission android:name="android.permission.INTERNET"/>
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+	<uses-permission android:name="com.google.android.providers.gsf.permission.READ_GSERVICES"/>
 
-    <application
-        android:allowBackup="true"
-        android:name="$PROJECT_PACKAGE_BASE_JAVA.Application"
-	android:icon="@drawable/ic_launcher"
-	>
-        <meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
-        <meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="$MAPS_V2_KEY" />
-        <activity
-            android:name="$PROJECT_PACKAGE_BASE_JAVA.MainPageActivity"
-            android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name="$PROJECT_PACKAGE_BASE_JAVA.MapActivity"
-            android:label="@string/app_name" >
-        </activity>
-    </application>
+	<application
+		android:allowBackup="true"
+		android:name="$PROJECT_PACKAGE_BASE_JAVA.Application"
+		android:icon="@drawable/ic_launcher">
+
+		<meta-data android:name="com.google.android.gms.version" android:value="@integer/google_play_services_version" />
+		<meta-data android:name="com.google.android.maps.v2.API_KEY" android:value="$MAPS_V2_KEY" />
+		<activity
+		    android:name="$PROJECT_PACKAGE_BASE_JAVA.MainPageActivity"
+		    android:label="@string/app_name" >
+		    <intent-filter>
+			<action android:name="android.intent.action.MAIN" />
+			<category android:name="android.intent.category.LAUNCHER" />
+		    </intent-filter>
+		</activity>
+		<activity
+		    android:name="$PROJECT_PACKAGE_BASE_JAVA.MapActivity"
+		    android:label="@string/app_name" >
+		</activity>
+		<activity
+		    android:name="$PROJECT_PACKAGE_BASE_JAVA.PreferencesActivity"
+		    android:label="@string/app_name" >
+		</activity>
+	</application>
 </manifest>
 END_HEREDOC
 
@@ -239,12 +264,12 @@ echo "###---> Adding .classpath for Eclipse"
 cat << END_HEREDOC > .classpath
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
-	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry kind="src" path="gen"/>
-	<classpathentry kind="output" path="bin/classes"/>
+<classpathentry kind="src" path="src/main/java"/>
+<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+<classpathentry kind="src" path="gen"/>
+<classpathentry kind="output" path="bin/classes"/>
 </classpath>
 END_HEREDOC
 
@@ -331,6 +356,54 @@ END_HEREDOC
 
 
 
+echo "###---> Preferences activity"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/PreferencesActivity.java
+package $PROJECT_PACKAGE_BASE_JAVA;
+
+import android.os.Bundle;
+import android.preference.PreferenceActivity;
+
+public class PreferencesActivity extends PreferenceActivity{
+    
+    @SuppressWarnings("unused")
+    private static final String TAG = PreferencesActivity.class.getSimpleName();
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        addPreferencesFromResource(R.xml.preferences);
+    }
+}
+END_HEREDOC
+
+
+echo "###---> preferences.xml"
+
+cat << END_HEREDOC > src/main/res/xml/preferences.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceCategory android:title="Settings category">
+<CheckBoxPreference
+	android:defaultValue="false"
+	android:key="@string/settings_checkbox_key"
+	android:title="Some checkbox"
+	/>
+
+</PreferenceCategory>   
+<PreferenceCategory android:title="Another category">
+<EditTextPreference
+	android:title="Some edit text preference"
+	android:selectable="true"
+	android:key="@string/settings_edittext_key"
+	/>
+</PreferenceCategory>
+</PreferenceScreen>
+END_HEREDOC
+
+
+
 echo "###---> Main Activity"
 
 cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/MainPageActivity.java
@@ -340,11 +413,15 @@ import $PROJECT_PACKAGE_BASE_JAVA.R;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.TextView;
 
 public class MainPageActivity extends FragmentActivity {
 
@@ -355,6 +432,7 @@ public class MainPageActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_main);
+
             Button b = (Button) findViewById(R.id.main_activity_gotomaps_button);
             b.setOnClickListener(new OnClickListener() {
 				@Override public void onClick(View v) {
@@ -366,6 +444,32 @@ public class MainPageActivity extends FragmentActivity {
             return;
         }
     }
+
+    @Override
+    protected void onResume() {
+    	super.onResume();
+        String preferenceString = PreferenceManager
+          	.getDefaultSharedPreferences(this)
+           	.getString(getString(R.string.settings_edittext_key), "EditTextPreference preference not set yet.");
+        TextView preferencesTextView = (TextView) findViewById(R.id.main_activity_preferences_string_textview);
+        preferencesTextView.setText(preferenceString);
+    }
+    
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_activity_options, menu);
+    	super.onCreateOptionsMenu(menu);
+        return true;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	if(item.getItemId() == R.id.main_activity_options_action_preferences) {
+		startActivity(new Intent(MainPageActivity.this, PreferencesActivity.class));
+    	}
+    	return super.onOptionsItemSelected(item);
+    }
+
 }
 END_HEREDOC
 
@@ -389,10 +493,18 @@ cat << END_HEREDOC > src/main/res/layout/activity_main.xml
         android:layout_centerInParent="true"
         app:my_attr="@string/custom_view_greeting"
         />
+     <TextView
+        android:id="@+id/main_activity_preferences_string_textview"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/main_activity_customview"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        />
+
      <Button
         android:id="@+id/main_activity_gotomaps_button"
         android:layout_width="wrap_content"
-        android:layout_below="@id/main_activity_customview"
+        android:layout_below="@id/main_activity_preferences_string_textview"
         android:layout_centerHorizontal="true"
         android:layout_height="wrap_content"
         android:text="@string/goto_maps_button" />
