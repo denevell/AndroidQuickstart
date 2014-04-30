@@ -7,13 +7,14 @@ Features:
 - Google Maps V2
 - Actionbar from compatibility project
 - Custom view with attributes
-- Build types / variants
-- Signing release build
-- Eclipse integration
+- View Pager
 - Preferences activity
 - Licences activity
 - Main Activity and layout
 - Application class
+- Build types / variants
+- Signing release build
+- Eclipse integration
 
 Requirements:
 
@@ -36,7 +37,6 @@ Android Studio integration:
 
 Todo:
 
-- View pager
 - Smooth view pager transitions
 - Navigation menu, left and right
 - List view with images

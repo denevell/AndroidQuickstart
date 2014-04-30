@@ -159,12 +159,15 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="custom_view_checkbox_text">Hiya</string>
     <string name="custom_view_greeting">Why hello!</string>
     <string name="goto_maps_button">Map</string>
+    <string name="goto_viewpager_button">View Pager</string>
     <string name="preferences_option">Preferences</string>
     <string name="licences_option">Licences</string>
     <string name="settings_checkbox_key">settings_checkbox_key</string>
     <string name="settings_edittext_key">settings_edittext_key</string>
     <string name="google_play_licence_info_header">Google Play Services Licence Info</string>
     <string name="legal_text_and_licences">Legal text and licences</string>
+    <string name="tab_viewpager_one">One</string>
+    <string name="tab_viewpager_two">Two</string>
 </resources>
 END_HEREDOC
 
@@ -278,6 +281,11 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
 		    android:theme="@style/AppTheme" 
 		    android:label="@string/app_name" >
 		</activity>
+		<activity
+		    android:name="$PROJECT_PACKAGE_BASE_JAVA.ViewPagerActivity"
+		    android:theme="@style/AppTheme" 
+		    android:label="@string/app_name" >
+		</activity>
 	</application>
 </manifest>
 END_HEREDOC
@@ -320,7 +328,7 @@ import android.view.View.OnClickListener;
 
 public class LicencesActivity extends FragmentActivity {
 
-    private static final String TAG = MainPageActivity.class.getSimpleName();
+    private static final String TAG = LicencesActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -472,6 +480,12 @@ public class MainPageActivity extends FragmentActivity {
 					startActivity(new Intent(MainPageActivity.this, MapActivity.class));
 				}
 			});
+            Button b1 = (Button) findViewById(R.id.main_activity_gotoviewpager_button);
+            b1.setOnClickListener(new OnClickListener() {
+				@Override public void onClick(View v) {
+					startActivity(new Intent(MainPageActivity.this, ViewPagerActivity.class));
+				}
+			});
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse activity", e);
             return;
@@ -543,7 +557,13 @@ cat << END_HEREDOC > src/main/res/layout/activity_main.xml
         android:layout_centerHorizontal="true"
         android:layout_height="wrap_content"
         android:text="@string/goto_maps_button" />
-
+     <Button
+        android:id="@+id/main_activity_gotoviewpager_button"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/main_activity_gotomaps_button"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        android:text="@string/goto_viewpager_button" />
 </RelativeLayout>
 END_HEREDOC
 
@@ -756,6 +776,116 @@ cat << END_HEREDOC > src/main/res/layout/activity_map.xml
         android:layout_width="match_parent"
         android:layout_height="match_parent"
     />
+
+</RelativeLayout>
+END_HEREDOC
+
+
+
+echo "###---> ViewPager class"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/ViewPagerActivity.java
+package $PROJECT_PACKAGE_BASE_JAVA;
+
+import java.util.ArrayList;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
+
+public class ViewPagerActivity extends ActionBarActivity {
+
+    private static final String TAG = ViewPagerActivity.class.getSimpleName();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        try {
+            setContentView(R.layout.activity_viewpager);
+            
+            ActionBar ab = getSupportActionBar();
+            ab.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+            ab.setDisplayShowTitleEnabled(true);
+            ab.removeAllTabs();
+
+            ViewPager pager = (ViewPager) findViewById(R.id.viewpager_activity_viewpager);
+            pager.setAdapter(new FragmentPageAdapter(getSupportFragmentManager()));
+            pager.setOnPageChangeListener(new FragmentSwipeListener());
+
+            Tab tab = ab.newTab().setText(R.string.tab_viewpager_one).setTabListener(new FragmentTabEmptyListener());
+            ab.addTab(tab);
+            Tab tab1 = ab.newTab().setText(R.string.tab_viewpager_two).setTabListener(new FragmentTabEmptyListener());
+            ab.addTab(tab1);
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to parse activity", e);
+            return;
+        }
+    }
+    
+    private class FragmentPageAdapter extends FragmentPagerAdapter {
+    	
+        private ArrayList<Fragment> mFragments = new ArrayList<Fragment>();
+        
+        public FragmentPageAdapter(FragmentManager fm) {
+            super(fm);
+            mFragments = new ArrayList<Fragment>();
+            mFragments.add(new Fragment());
+            mFragments.add(new Fragment());
+        }
+
+        @Override
+	public Fragment getItem(int arg0) {
+	    return mFragments.get(arg0);
+	}
+
+	@Override
+	public int getCount() {
+	    return mFragments.size();
+	}
+    }
+    
+    private class FragmentTabEmptyListener implements ActionBar.TabListener {
+	@Override public void onTabReselected(Tab arg0, FragmentTransaction arg1) {}
+	@Override public void onTabSelected(Tab arg0, FragmentTransaction arg1) { }
+	@Override public void onTabUnselected(Tab arg0, FragmentTransaction arg1) { }
+    }
+
+    private class FragmentSwipeListener implements OnPageChangeListener {
+        @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
+        @Override public void onPageScrollStateChanged(int state) { }
+        @Override public void onPageSelected(int position) { 
+            getSupportActionBar().setSelectedNavigationItem(position);
+        }
+    }
+}
+END_HEREDOC
+
+
+
+echo "###---> ViewPager layout"
+
+cat << END_HEREDOC > src/main/res/layout/activity_viewpager.xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/maps_relativelayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+
+        <android.support.v4.view.ViewPager
+            android:id="@+id/viewpager_activity_viewpager"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+        />
 
 </RelativeLayout>
 END_HEREDOC
