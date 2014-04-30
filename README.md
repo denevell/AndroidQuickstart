@@ -1,7 +1,8 @@
 Android Quickstart
 ==================
 
-Features:
+Features
+--------
 
 - Gradle setup
 - Google Maps V2
