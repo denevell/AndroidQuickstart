@@ -7,7 +7,7 @@ Features:
 - Google Maps V2
 - Actionbar from compatibility project
 - Custom view with attributes
-- View Pager
+- View Pager with PagerSlidingTabStrip
 - Preferences activity
 - Licences activity
 - Main Activity and layout
@@ -28,7 +28,9 @@ Running:
 Eclipse integration:
 
 - You must import (and have built) all the projects in eclipse_subprojects into your workspace.
-- You then import the project into Eclipse as an Android project as normal.
+   - You must import them while within in AndroidQuickstart/YOUR_PROJECT_NAME/ directory when using the Eclipse import dialogue, or things will go awry with path directories.
+   - Import only 'google_play', 'PagerSlidingTabStrip' and 'android-support-v7-appcompat' and ignore the rest
+- You must only then import the YOUR_PROJECT_NAME project
 
 Android Studio integration:
 
@@ -37,7 +39,6 @@ Android Studio integration:
 
 Todo:
 
-- Smooth view pager transitions
 - Navigation menu, left and right
 - List view with images
 - Swipe to refresh

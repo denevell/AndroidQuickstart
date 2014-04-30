@@ -57,7 +57,6 @@ mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils
 mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
-	echo "Deleted symlink"
 	rm res 
 fi
 cp -r ../res src/main/
@@ -106,6 +105,7 @@ dependencies {
         compile 'com.squareup.dagger:dagger-compiler:1.2.1'
         compile 'com.squareup.dagger:dagger:1.2.1'
         compile 'com.squareup:otto:1.3.4'
+        compile 'com.astuetz:pagerslidingtabstrip:1.0.1'
         compile 'com.bugsense.trace:bugsense:3.6'
         compile 'org.mockito:mockito-all:1.9.5'
         compile 'org.apache.commons:commons-lang3:3.1'
@@ -297,14 +297,12 @@ echo "###---> Application class"
 cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/Application.java
 package $PROJECT_PACKAGE_BASE_JAVA;
 
-import android.util.Log;
-
 public class Application extends android.app.Application {
     protected static final String TAG = "$PROJECT_NAME Application class";
 
     @Override
     public void onCreate() {
-	super.onCreate();
+        super.onCreate();
     }
 
 }
@@ -788,17 +786,19 @@ cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/ViewPagerActivity.
 package $PROJECT_PACKAGE_BASE_JAVA;
 
 import java.util.ArrayList;
+
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.support.v4.view.ViewPager.OnPageChangeListener;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.astuetz.PagerSlidingTabStrip;
 
 public class ViewPagerActivity extends ActionBarActivity {
 
@@ -810,20 +810,12 @@ public class ViewPagerActivity extends ActionBarActivity {
         try {
             setContentView(R.layout.activity_viewpager);
             
-            ActionBar ab = getSupportActionBar();
-            ab.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-            ab.setDisplayShowTitleEnabled(true);
-            ab.removeAllTabs();
-
             ViewPager pager = (ViewPager) findViewById(R.id.viewpager_activity_viewpager);
             pager.setAdapter(new FragmentPageAdapter(getSupportFragmentManager()));
-            pager.setOnPageChangeListener(new FragmentSwipeListener());
 
-            Tab tab = ab.newTab().setText(R.string.tab_viewpager_one).setTabListener(new FragmentTabEmptyListener());
-            ab.addTab(tab);
-            Tab tab1 = ab.newTab().setText(R.string.tab_viewpager_two).setTabListener(new FragmentTabEmptyListener());
-            ab.addTab(tab1);
-            
+            PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.viewpager_activity_pageslidingtabstrip);
+            tabs.setViewPager(pager);
+
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse activity", e);
             return;
@@ -831,39 +823,52 @@ public class ViewPagerActivity extends ActionBarActivity {
     }
     
     private class FragmentPageAdapter extends FragmentPagerAdapter {
-    	
         private ArrayList<Fragment> mFragments = new ArrayList<Fragment>();
+        private ArrayList<String > mTabNames = new ArrayList<String>();
         
         public FragmentPageAdapter(FragmentManager fm) {
             super(fm);
             mFragments = new ArrayList<Fragment>();
-            mFragments.add(new Fragment());
-            mFragments.add(new Fragment());
+            mFragments.add(new RedFragment());
+            mTabNames.add(getString(R.string.tab_viewpager_one));
+            mFragments.add(new GreenFragment());
+            mTabNames.add(getString(R.string.tab_viewpager_two));
+        }
+        
+        @Override
+        public CharSequence getPageTitle(int position) {
+        	return mTabNames.get(position);
         }
 
         @Override
-	public Fragment getItem(int arg0) {
-	    return mFragments.get(arg0);
-	}
+	    public Fragment getItem(int arg0) {
+	        return mFragments.get(arg0);
+    	}
 
-	@Override
-	public int getCount() {
-	    return mFragments.size();
-	}
+	    @Override
+    	public int getCount() {
+    	    return mFragments.size();
+    	}
     }
     
-    private class FragmentTabEmptyListener implements ActionBar.TabListener {
-	@Override public void onTabReselected(Tab arg0, FragmentTransaction arg1) {}
-	@Override public void onTabSelected(Tab arg0, FragmentTransaction arg1) { }
-	@Override public void onTabUnselected(Tab arg0, FragmentTransaction arg1) { }
+    public static class RedFragment extends Fragment {
+        public RedFragment() {} 
+        
+    	@Override
+    	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    		View v = inflater.inflate(R.layout.red, container, false);
+    		return v;
+    	}
     }
 
-    private class FragmentSwipeListener implements OnPageChangeListener {
-        @Override public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
-        @Override public void onPageScrollStateChanged(int state) { }
-        @Override public void onPageSelected(int position) { 
-            getSupportActionBar().setSelectedNavigationItem(position);
-        }
+    public static class GreenFragment extends Fragment {
+        public GreenFragment() {} 
+
+    	@Override
+    	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    		View v = inflater.inflate(R.layout.green, container, false);
+    		return v;
+    	}
     }
 }
 END_HEREDOC
@@ -876,13 +881,20 @@ cat << END_HEREDOC > src/main/res/layout/activity_viewpager.xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/maps_relativelayout"
+    android:id="@+id/viewoager_activity_relativelayout"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     >
 
+        <com.astuetz.PagerSlidingTabStrip
+            android:id="@+id/viewpager_activity_pageslidingtabstrip"
+            android:layout_width="match_parent"
+            app:pstsShouldExpand="true"
+            android:layout_height="48dip" />
+
         <android.support.v4.view.ViewPager
             android:id="@+id/viewpager_activity_viewpager"
+            android:layout_below="@id/viewpager_activity_pageslidingtabstrip"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
         />
@@ -892,17 +904,87 @@ END_HEREDOC
 
 
 
+echo "###---> Fragment layouts for view pager"
+
+cat << END_HEREDOC > src/main/res/layout/red.xml
+    <LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    	xmlns:tools="http://schemas.android.com/tools"
+    	xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/licences_activity_relativelayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#f00"
+        android:orientation="vertical" >
+    </LinearLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/green.xml
+    <LinearLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+    	xmlns:tools="http://schemas.android.com/tools"
+    	xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:background="#0f0"
+        android:orientation="vertical" >
+    </LinearLayout>
+END_HEREDOC
+
+
+
 echo "###---> Creating directory of projects for Eclipse to import (would be AARs in Gradle)"
 
 mkdir eclipse_subprojects
 cd eclipse_subprojects
+# Android SDK library projects
+if [ -h actionbar_appcompat ]; then 
+	rm actionbar_appcompat 
+fi
 ln -s $ANDROID_HOME/extras/android/support/v7/appcompat/ actionbar_appcompat
+if [ -h google_play ]; then 
+	rm google_play
+fi
 ln -s $ANDROID_HOME/extras/google/google_play_services/libproject/google-play-services_lib/ google_play
+# PagerSlidingTabStrip import
+git clone https://github.com/astuetz/PagerSlidingTabStrip.git -b v1.0.1
+echo "android.library.reference.1=../../actionbar_appcompat" >> PagerSlidingTabStrip/library/project.properties 
+cat << END_HEREDOC > PagerSlidingTabStrip/library/.project
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>PagerSlidingTabStrip</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.ResourceManagerBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.PreCompilerBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
+			<name>com.android.ide.eclipse.adt.ApkBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+</projectDescription>
+END_HEREDOC
 cd ..
-
-echo "###---> Copying libs/ directory since Eclipse can't deal with AAR files"
-
-cp -r ../libs .
 
 
 
@@ -953,6 +1035,7 @@ cat << END_HEREDOC > project.properties
 target=android-19
 android.library.reference.1=eclipse_subprojects/google_play
 android.library.reference.2=eclipse_subprojects/actionbar_appcompat
+android.library.reference.3=eclipse_subprojects/PagerSlidingTabStrip/library
 END_HEREDOC
 
 
