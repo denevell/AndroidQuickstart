@@ -46,16 +46,16 @@ Todo
 ----
 
 - Navigation menu, left and right
+- Navigation menu sub menus
 - List view with images
 - Swipe to refresh
-- Rotating the maps fragment / extant fragment
+- Fragment navigation
 - Espresso imports
 - Espresso test
 - Robolectric tests
 - Product flavours
 - Push messaging
 - Production key for maps
-- Figure out best navigation (fragments, activities) pattern
 - Image downloading and caching
 - Retrofit and Okhttp for networking
 - Intent service
@@ -67,7 +67,8 @@ Todo
 - Checks for connectivity
 - Wizard Page adapter
 - Actionbar action menu
-- Actionbar tabs
+- Actionbar tabs drop down
+- Actionbar tab icons
 - Actionbar share provider 
 - Actionbar navigate up
 - Actionbar split bar
