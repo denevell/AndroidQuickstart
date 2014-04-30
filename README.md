@@ -16,28 +16,33 @@ Features:
 - Signing release build
 - Eclipse integration
 
-Requirements:
+Requirements
+------------
 
 - Unix-like OS (Tested on Debian Linux) 
 - Android SDK installed (at least API 19, Google respositories, Android repository, SDK tools, SDK build tools, SDK platform tools, Support library, Google play services)
 
-Running:
+Running
+-------
 
 	PROJECT_NAME=AndroidProject PROJECT_PACKAGE_JAVA=org.denevell PROJECT_PACKAGE_NAME=AndroidProject bash quickstart.sh
 
-Eclipse integration:
+Eclipse integration
+-------------------
 
 - You must import (and have built) all the projects in eclipse_subprojects into your workspace.
    - You must import them while within in AndroidQuickstart/YOUR_PROJECT_NAME/ directory when using the Eclipse import dialogue, or things will go awry with path directories.
    - Import only 'google_play', 'PagerSlidingTabStrip' and 'android-support-v7-appcompat' and ignore the rest
 - You must only then import the YOUR_PROJECT_NAME project
 
-Android Studio integration:
+Android Studio integration
+--------------------------
 
 - You must remove the 'res' and 'AndroidManifest.xml' symlinks else IntelliJ will complain 
 - Then import the project as a Gradle project
 
-Todo:
+Todo
+----
 
 - Navigation menu, left and right
 - List view with images
