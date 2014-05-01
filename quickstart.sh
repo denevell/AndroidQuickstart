@@ -160,6 +160,7 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="custom_view_greeting">Why hello!</string>
     <string name="goto_maps_button">Map</string>
     <string name="goto_viewpager_button">View Pager</string>
+    <string name="goto_navmenu_button">View Pager</string>
     <string name="preferences_option">Preferences</string>
     <string name="licences_option">Licences</string>
     <string name="settings_checkbox_key">settings_checkbox_key</string>
@@ -562,6 +563,13 @@ cat << END_HEREDOC > src/main/res/layout/activity_main.xml
         android:layout_centerHorizontal="true"
         android:layout_height="wrap_content"
         android:text="@string/goto_viewpager_button" />
+     <Button
+        android:id="@+id/main_activity_gotonavmenu_button"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/main_activity_gotoviewpager_button"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        android:text="@string/goto_navmenu_button" />
 </RelativeLayout>
 END_HEREDOC
 
