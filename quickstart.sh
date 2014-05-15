@@ -1667,6 +1667,7 @@ ln -s $ANDROID_HOME/extras/google/google_play_services/libproject/google-play-se
 # PagerSlidingTabStrip import
 git clone https://github.com/astuetz/PagerSlidingTabStrip.git -b v1.0.1
 echo "android.library.reference.1=../../actionbar_appcompat" >> PagerSlidingTabStrip/library/project.properties 
+sed -i s/target=.*/target=android-19/g PagerSlidingTabStrip/library/project.properties
 cat << END_HEREDOC > PagerSlidingTabStrip/library/.project
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
@@ -1701,6 +1702,17 @@ cat << END_HEREDOC > PagerSlidingTabStrip/library/.project
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
 </projectDescription>
+END_HEREDOC
+cat << END_HEREDOC > PagerSlidingTabStrip/library/.classpath
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+        <classpathentry kind="src" path="src"/>
+        <classpathentry kind="src" path="gen"/>
+        <classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+        <classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
+        <classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
+        <classpathentry kind="output" path="bin/classes"/>
+</classpath>
 END_HEREDOC
 cd ..
 
