@@ -46,7 +46,6 @@ Android Studio integration
 Todo
 ----
 
-- Crash when non google play services installed.
 - Take a picture with camera
 - Navigation menu, on the right
 - Fragment navigation
