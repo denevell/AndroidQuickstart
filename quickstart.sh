@@ -55,6 +55,7 @@ mkdir $PROJECT_NAME
 cd $PROJECT_NAME 
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils
+mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav
 mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
 	rm res 
@@ -144,6 +145,11 @@ android {
                 }
         }
 
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_7
+            targetCompatibility JavaVersion.VERSION_1_7
+        }
+
         compileSdkVersion 19
 }
 END_HEREDOC
@@ -159,8 +165,7 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="custom_view_checkbox_text">Hiya</string>
     <string name="custom_view_greeting">Why hello!</string>
     <string name="goto_maps_button">Map</string>
-    <string name="goto_viewpager_button">View Pager</string>
-    <string name="goto_navmenu_button">View Pager</string>
+    <string name="goto_navmenu_button">Nav Drawer</string>
     <string name="preferences_option">Preferences</string>
     <string name="licences_option">Licences</string>
     <string name="settings_checkbox_key">settings_checkbox_key</string>
@@ -169,6 +174,11 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="legal_text_and_licences">Legal text and licences</string>
     <string name="tab_viewpager_one">One</string>
     <string name="tab_viewpager_two">Two</string>
+    <string name="nav_item1">Nav Item 1</string>
+    <string name="nav_item2">Nav Item 2</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="drawer_item_one_title">Drawer item  one</string>
 </resources>
 END_HEREDOC
 
@@ -193,29 +203,6 @@ cat << END_HEREDOC > src/main/res/values/styles.xml
     </style>
 
 </resources>
-END_HEREDOC
-
-
-
-echo "###---> Menu xml file for main activity"
-
-cat << END_HEREDOC > src/main/res/menu/main_activity_options.xml
-<menu 
-	xmlns:android="http://schemas.android.com/apk/res/android" 
-	xmlns:tools="http://schemas.android.com/tools">
-
-		<item
-		android:id="@+id/main_activity_options_action_preferences"
-		android:showAsAction="never"
-		android:title="@string/preferences_option" 
-		/>
-		<item
-		android:id="@+id/main_activity_options_action_licences"
-		android:showAsAction="never"
-		android:title="@string/licences_option" 
-		/>
-
-	</menu>
 END_HEREDOC
 
 
@@ -283,10 +270,11 @@ cat << END_HEREDOC > src/main/AndroidManifest.xml
 		    android:label="@string/app_name" >
 		</activity>
 		<activity
-		    android:name="$PROJECT_PACKAGE_BASE_JAVA.ViewPagerActivity"
+		    android:name="$PROJECT_PACKAGE_BASE_JAVA.nav.NavManagerFragmentActivity"
 		    android:theme="@style/AppTheme" 
 		    android:label="@string/app_name" >
 		</activity>
+
 	</application>
 </manifest>
 END_HEREDOC
@@ -453,7 +441,6 @@ import $PROJECT_PACKAGE_BASE_JAVA.R;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -462,6 +449,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
+
+import $PROJECT_PACKAGE_BASE_JAVA.nav.NavManagerFragmentActivity;
 
 public class MainPageActivity extends FragmentActivity {
 
@@ -479,43 +468,16 @@ public class MainPageActivity extends FragmentActivity {
 					startActivity(new Intent(MainPageActivity.this, MapActivity.class));
 				}
 			});
-            Button b1 = (Button) findViewById(R.id.main_activity_gotoviewpager_button);
-            b1.setOnClickListener(new OnClickListener() {
+            Button b2 = (Button) findViewById(R.id.main_activity_gotonavmenu_button);
+            b2.setOnClickListener(new OnClickListener() {
 				@Override public void onClick(View v) {
-					startActivity(new Intent(MainPageActivity.this, ViewPagerActivity.class));
+					startActivity(new Intent(MainPageActivity.this, NavManagerFragmentActivity.class));
 				}
 			});
         } catch (Exception e) {
             Log.e(TAG, "Failed to parse activity", e);
             return;
         }
-    }
-
-    @Override
-    protected void onResume() {
-    	super.onResume();
-        String preferenceString = PreferenceManager
-          	.getDefaultSharedPreferences(this)
-           	.getString(getString(R.string.settings_edittext_key), "EditTextPreference preference not set yet.");
-        TextView preferencesTextView = (TextView) findViewById(R.id.main_activity_preferences_string_textview);
-        preferencesTextView.setText(preferenceString);
-    }
-    
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_activity_options, menu);
-    	super.onCreateOptionsMenu(menu);
-        return true;
-    }
-    
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-    	if(item.getItemId() == R.id.main_activity_options_action_preferences) {
-    		startActivity(new Intent(MainPageActivity.this, PreferencesActivity.class));
-    	} else if(item.getItemId() == R.id.main_activity_options_action_licences) {
-    		startActivity(new Intent(MainPageActivity.this, LicencesActivity.class));
-    	}
-    	return super.onOptionsItemSelected(item);
     }
 
 }
@@ -541,32 +503,18 @@ cat << END_HEREDOC > src/main/res/layout/activity_main.xml
         android:layout_centerInParent="true"
         app:my_attr="@string/custom_view_greeting"
         />
-     <TextView
-        android:id="@+id/main_activity_preferences_string_textview"
-        android:layout_width="wrap_content"
-        android:layout_below="@id/main_activity_customview"
-        android:layout_centerHorizontal="true"
-        android:layout_height="wrap_content"
-        />
 
      <Button
         android:id="@+id/main_activity_gotomaps_button"
         android:layout_width="wrap_content"
-        android:layout_below="@id/main_activity_preferences_string_textview"
+        android:layout_below="@id/main_activity_customview"
         android:layout_centerHorizontal="true"
         android:layout_height="wrap_content"
         android:text="@string/goto_maps_button" />
      <Button
-        android:id="@+id/main_activity_gotoviewpager_button"
-        android:layout_width="wrap_content"
-        android:layout_below="@id/main_activity_gotomaps_button"
-        android:layout_centerHorizontal="true"
-        android:layout_height="wrap_content"
-        android:text="@string/goto_viewpager_button" />
-     <Button
         android:id="@+id/main_activity_gotonavmenu_button"
         android:layout_width="wrap_content"
-        android:layout_below="@id/main_activity_gotoviewpager_button"
+        android:layout_below="@id/main_activity_gotomaps_button"
         android:layout_centerHorizontal="true"
         android:layout_height="wrap_content"
         android:text="@string/goto_navmenu_button" />
@@ -790,7 +738,7 @@ END_HEREDOC
 
 echo "###---> ViewPager class"
 
-cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/ViewPagerActivity.java
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/ViewPagerFragment.java
 package $PROJECT_PACKAGE_BASE_JAVA;
 
 import java.util.ArrayList;
@@ -808,26 +756,20 @@ import android.view.ViewGroup;
 
 import com.astuetz.PagerSlidingTabStrip;
 
-public class ViewPagerActivity extends ActionBarActivity {
+public class ViewPagerFragment extends Fragment {
 
-    private static final String TAG = ViewPagerActivity.class.getSimpleName();
+    private static final String TAG = ViewPagerFragment.class.getSimpleName();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_viewpager);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.viewpager_fragment, container, false);
             
-            ViewPager pager = (ViewPager) findViewById(R.id.viewpager_activity_viewpager);
-            pager.setAdapter(new FragmentPageAdapter(getSupportFragmentManager()));
+        ViewPager pager = (ViewPager) v.findViewById(R.id.viewpager_activity_viewpager);
+        pager.setAdapter(new FragmentPageAdapter(getChildFragmentManager()));
 
-            PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) findViewById(R.id.viewpager_activity_pageslidingtabstrip);
-            tabs.setViewPager(pager);
-
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to parse activity", e);
-            return;
-        }
+        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) v.findViewById(R.id.viewpager_activity_pageslidingtabstrip);
+        tabs.setViewPager(pager);
+        return v;
     }
     
     private class FragmentPageAdapter extends FragmentPagerAdapter {
@@ -885,7 +827,7 @@ END_HEREDOC
 
 echo "###---> ViewPager layout"
 
-cat << END_HEREDOC > src/main/res/layout/activity_viewpager.xml
+cat << END_HEREDOC > src/main/res/layout/viewpager_fragment.xml
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -921,7 +863,7 @@ cat << END_HEREDOC > src/main/res/layout/red.xml
     	xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/licences_activity_relativelayout"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:background="#f00"
         android:orientation="vertical" >
     </LinearLayout>
@@ -933,10 +875,789 @@ cat << END_HEREDOC > src/main/res/layout/green.xml
     	xmlns:tools="http://schemas.android.com/tools"
     	xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="fill_parent"
         android:background="#0f0"
         android:orientation="vertical" >
     </LinearLayout>
+END_HEREDOC
+
+
+
+echo "###---> Navigation Drawer's FragmentActivity, drawer fragment, interfaces, layout and option menu for main activity"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav/NavManagerFragmentActivity.java
+package $PROJECT_PACKAGE_BASE_JAVA.nav;
+
+import java.util.HashMap;
+
+import android.os.Bundle;
+import android.os.Parcelable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.Fragment.SavedState;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
+import android.content.Intent;
+
+import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
+import $PROJECT_PACKAGE_BASE_JAVA.nav.NavigationDrawerCallbacks;
+import $PROJECT_PACKAGE_BASE_JAVA.ViewPagerFragment;
+import $PROJECT_PACKAGE_BASE_JAVA.PreferencesActivity;
+import $PROJECT_PACKAGE_BASE_JAVA.LicencesActivity;
+import $PROJECT_PACKAGE_BASE_JAVA.NavItemOneFragment;
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+/**
+ * We inflate a view with a DrawerLayout, a drawer fragment and a content FrameLayout holder, and we
+ * wait for a method call from the drawer fragment that tells us to open a fragment relating to an
+ * id, which we do by replacing the content holder's area with the new fragment.
+ * 
+ * Before going to a new fragment, we save the state of the old fragment in a HashMap according to 
+ * the name of the Fragment, and when new fragments are started we check that HashMap for saved state
+ * for that Fragment. This HashMap is saved in the lifecycle methods.
+ * 
+ * When a back press is issued, we check with the current fragment as to whether it has a backstack > 0
+ * itself, and pops that instead if so.
+ * 
+ * We also implement an interface method that child fragments use to ascertain if they should set
+ * their options menu etc, which we say yes to if the fragment is a normal fragment and the drawer is closed,
+ * or if the drawer is open and the fragment is the navigation drawer fragment. We only set our options 
+ * menu if the drawer is closed, too.
+ * 
+ * The Fragments we show are normal ones, except they use the methods herein to set the title (since 
+ * we'd want to control that if this were a tablet layout) and ask us if they should set their options menu.
+ */
+public class NavManagerFragmentActivity extends FragmentActivity
+	implements NavigationDrawerCallbacks, ChildFragmentsManager {
+
+	private DrawerLayout mDrawerLayout;
+	private View mNavDrawerView;
+	// So we have a reference to the previously switched to fragment to save its state, or saving current state on onSaveInstanceState
+	private Fragment mCurrentFragment; 
+	// Save fragment states for when we switch to another one
+	private HashMap<String, SavedState> mSavedStates = new HashMap<>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.nav_drawer_main_layout);
+
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mNavDrawerView = findViewById(R.id.navigation_drawer);
+    }
+    
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+    	super.onSaveInstanceState(outState);
+    	// Get the state of the currently active fragment and save it.
+	SavedState savedState = getSupportFragmentManager().saveFragmentInstanceState(mCurrentFragment);
+	mSavedStates.put(mCurrentFragment.getClass().getSimpleName(), savedState);
+	// Now save all the saved fragment states
+    	outState.putStringArray("savedStateStrings", mSavedStates.keySet().toArray(new String[0]));
+    	outState.putParcelableArray("savedStateStates", mSavedStates.values().toArray(new Parcelable[0]));
+    }
+    
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+    	super.onRestoreInstanceState(savedInstanceState);
+    	// Restore all the fragment states back into the HashMap
+    	Parcelable[] states = savedInstanceState.getParcelableArray("savedStateStates");
+    	String[] strings = savedInstanceState.getStringArray("savedStateStrings");
+    	for (int i = 0; i < strings.length; i++) {
+    		mSavedStates.put(strings[i], (SavedState) states[i]);
+	}
+    }
+    
+    /**
+     * If the current fragment has a backstack, pop that on backpress.
+     */
+    @Override
+    public void onBackPressed() {
+    	if(mCurrentFragment!=null && mCurrentFragment.getChildFragmentManager().getBackStackEntryCount()>0) {
+    		mCurrentFragment.getChildFragmentManager().popBackStack();
+    	} else {
+	    	super.onBackPressed();
+    	}
+    }
+
+    /**
+     * Used to work out if child fragments should set their options menu / action bar stuff
+     * @return
+     */
+     private boolean isDrawerOpen() {
+        return mDrawerLayout != null && mNavDrawerView != null && mDrawerLayout.isDrawerOpen(mNavDrawerView);
+     }
+
+    /**
+     * Set the options that are common among all the fragments.
+     * If the drawer is open, don't bother setting it, since the drawer fragment should then do so.
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        if (!isDrawerOpen()) {
+            getMenuInflater().inflate(R.menu.nav_main_activity_options, menu);
+            return true;
+        }
+        return super.onCreateOptionsMenu(menu);
+    }
+    
+    /**
+     * Define what happens when one of the options common to all fragments is pressed
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	if (item.getItemId() == R.id.action_activity) {
+    		Toast.makeText(this, "Act action.", Toast.LENGTH_SHORT).show();
+    		return true;
+    	} else if(item.getItemId() == R.id.preferences_option) {
+    		startActivity(new Intent(this, PreferencesActivity.class));
+    	} else if(item.getItemId() == R.id.licences_option) {
+    		startActivity(new Intent(this, LicencesActivity.class));
+    	}
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Only allow the child fragments to set their options menu / action bar stuff 
+     * if the drawer menu is closed, unless the child is the drawer fragment itself.
+     */
+    @Override
+    public boolean shouldChildSetOptionsMenuAndActionBar(int fragmentType, String fragmentName) {
+    	if(fragmentType==ChildFragmentsManager.NORMAL_FRAGMENT && !isDrawerOpen()) {
+    		return true;
+    	} else if(fragmentType==ChildFragmentsManager.NAV_MENU_FRAGMENT && isDrawerOpen()) {
+    		return true;
+    	} else {
+    		return false;
+    	}
+    }
+
+    /**
+     * Called by the drawer fragment if it thinks we haven't learnt it yet.
+     */
+    @Override
+    public void onUserHasntLearntAboutDrawer() {
+        if(mNavDrawerView!=null && mDrawerLayout != null) mDrawerLayout.openDrawer(mNavDrawerView);
+    }
+	
+    /**
+     * If we're a tablet design, this would likely not allow the fragment to set the title.
+     */
+    @Override
+    public void setTitleFromChild(String title) {
+        getActionBar().setTitle(title);
+    }
+
+    @Override
+    public void onNavigationDrawerItemSelected(int resourceId) {
+    	Fragment fragment = null;
+	switch (resourceId) {
+		case R.id.section_one_fragment:
+    		fragment = new NavItemOneFragment();
+    	   	setFragmentsSavedState(fragment);
+			break;
+		case R.id.section_two_fragment:
+    	   	fragment = new ViewPagerFragment();
+    	   	setFragmentsSavedState(fragment);
+			break;
+		default:
+    		fragment = new ViewPagerFragment.RedFragment();
+			Log.e(getClass().getSimpleName(), "Couldn't match fragment id to fragment object.");
+			break;
+	}
+	// Save the state of the old fragment from which we've just switched 
+	if(mCurrentFragment!=null) {
+		SavedState savedState = getSupportFragmentManager().saveFragmentInstanceState(mCurrentFragment);
+		mSavedStates.put(mCurrentFragment.getClass().getSimpleName(), savedState);
+	}
+	getSupportFragmentManager().beginTransaction()
+                .replace(R.id.container, fragment, fragment.getClass().getSimpleName())
+                .commit();
+	// Save a reference to the newly switched to fragment so we can save it's state on next switch
+	mCurrentFragment = fragment;
+	// Close the drawer if it's open so we can see the fragment
+        if(mNavDrawerView!=null && mDrawerLayout != null) mDrawerLayout.closeDrawer(mNavDrawerView);
+    }
+
+    /**
+     * Sets the fragments saved state by looking up its name in mSavedState.
+     */
+    private void setFragmentsSavedState(Fragment fragment) {
+        SavedState savedState = mSavedStates.get(fragment.getClass().getSimpleName());
+        if(savedState!=null) fragment.setInitialSavedState(savedState);
+    }
+
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/menu/nav_main_activity_options.xml
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"> 
+    <item
+        android:id="@+id/action_activity"
+        android:orderInCategory="100"
+        android:showAsAction="ifRoom|withText"
+        android:title="Act action"/>
+    <item
+        android:id="@+id/preferences_option"
+        android:orderInCategory="200"
+        android:showAsAction="never"
+        android:title="@string/preferences_option"/>
+    <item
+    	android:id="@+id/licences_option"
+        android:showAsAction="never"
+        android:title="@string/licences_option"/>
+</menu>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav/NavigationDrawerFragment.java
+package $PROJECT_PACKAGE_BASE_JAVA.nav;
+
+import android.app.ActionBar;
+import android.app.Activity;
+import android.app.Fragment;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v4.app.ActionBarDrawerToggle;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Toast;
+
+import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
+import $PROJECT_PACKAGE_BASE_JAVA.nav.NavigationDrawerCallbacks;
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+/**
+ * We inflate a ListView for the navigation drawer, set its adapter, and on list item click
+ * we call a method which translates that position into a fragment id which we send to the 
+ * host fragment or activity. It's current selected position is saved via the lifecycle methods
+ * in order to restore it on rotation / configuration change.
+ * 
+ * Once the activity is attached, we get the overall DrawerLayout, set its shadow, calls a method on
+ * the host if the user hasn't learnt about the drawer (which would normally open the drawer to show the
+ * user), and sets a listener on the DrawerLayout which is a DrawerToggle, which sets an icon, invalidates the
+ * host's option menus on open / close and ascertains if the user has learnt the drawer (i.e. opened it). 
+ * 
+ * We save the open / closed drawer state in the lifecycle methods, so if they say the drawer was already
+ * opened then we open it in the onResume method call.
+ * 
+ * The option menu create method asks the host if it should set the options / title / actionbar, and the hosts 
+ * says yes if the drawer is open. If the host says yes it also saves the previously title on the host, and when
+ * the host says "no, don't set the options menu etc" it restores that title (and nulls the title so it
+ * can't set it again).
+ */
+public class NavigationDrawerFragment extends Fragment {
+
+    private static final String STATE_SELECTED_POSITION = "selected_navigation_drawer_position";
+    private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
+	private static final String STATE_PREVIOUS_TITLE = "previous_title";
+	private static final String STATE_DRAWER_OPEN = "drawer_open";
+    private NavigationDrawerCallbacks mDrawerHolderCallbacks;
+    private ChildFragmentsManager mChildFragmentManagerCallbacks;
+    private ActionBarDrawerToggle mDrawerToggle;
+    private ListView mDrawerListView;
+    private int mCurrentSelectedPosition = 0;
+    /**
+     * If it is from saved instance, then we've just rotated or similar, so in this case
+     * don't bother with doing something if the user hasn't learnt the navigation drawer, 
+     * since we only do that on app start, else we may be opening the navigation drawer
+     * to show the user it exists on each rotation -- which would be annoying to the user.
+     */
+    private boolean mFromSavedInstanceState;
+    private boolean mUserLearnedDrawer;
+    /**
+     * Used to reset the previous fragment title when the nav drawer closes
+     */
+	private CharSequence mPreviousFragmentTitleToRestore;
+	protected boolean mIsDrawerOpen;
+
+    public NavigationDrawerFragment() {}
+
+    /**
+     * When we start, we restore 
+     * - look if the user has learnt the drawer interaction, to do something if they have not.
+     * - the last selected nav item position, to reselect it.
+     * - the previous activity / fragment title, to reset it when the navigation drawer closes.
+     */
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mUserLearnedDrawer = sp.getBoolean(PREF_USER_LEARNED_DRAWER, false);
+
+        if (savedInstanceState != null) {
+            mIsDrawerOpen = savedInstanceState.getBoolean(STATE_DRAWER_OPEN);
+            mCurrentSelectedPosition = savedInstanceState.getInt(STATE_SELECTED_POSITION);
+            mPreviousFragmentTitleToRestore = savedInstanceState.getCharSequence(STATE_PREVIOUS_TITLE);
+            mFromSavedInstanceState = true;
+        }
+
+    }
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+        openNavivgationItem(mCurrentSelectedPosition);
+        if(mIsDrawerOpen) {
+        	View drawerView = getActivity().findViewById(R.id.navigation_drawer);
+        	View drawerLayout = getActivity().findViewById(R.id.drawer_layout);
+        	if(drawerView!=null && drawerLayout!=null && drawerLayout instanceof DrawerLayout) {
+        		((DrawerLayout)drawerLayout).openDrawer(drawerView);
+        	}
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(STATE_DRAWER_OPEN, mIsDrawerOpen);
+        outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedPosition);
+        outState.putCharSequence(STATE_PREVIOUS_TITLE, mPreviousFragmentTitleToRestore);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig); // As specified by the DrawerToggle
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mDrawerHolderCallbacks = (NavigationDrawerCallbacks) activity;
+            mChildFragmentManagerCallbacks = (ChildFragmentsManager) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Activity must implement NavigationDrawerCallbacks and ChildFragmentManager.");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mDrawerHolderCallbacks = null;
+        mChildFragmentManagerCallbacks = null;
+    }    
+
+    /**
+     * We inflate the layout for the drawer, a list view, set its adapter, 
+     * when an item is pressed call selectItem(), and set its checked item if we've saved it.
+     */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        mDrawerListView = (ListView) inflater.inflate(R.layout.fragment_navigation_drawer, container, false);
+        mDrawerListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            		// Uncomment to prevent navigation drawer selecting the same fragment twice
+            		//if(position == mCurrentSelectedPosition) {
+            		//	return;
+            		//}
+            		mCurrentSelectedPosition = position;
+            		if (mDrawerListView != null) {
+            			mDrawerListView.setItemChecked(position, true);
+            		}
+            		openNavivgationItem(position);
+            	}
+        });
+        mDrawerListView.setAdapter(new ArrayAdapter<String>(
+                getActivity().getActionBar().getThemedContext(),
+                android.R.layout.simple_list_item_activated_1,
+                android.R.id.text1,
+                new String[]{
+                        getString(R.string.nav_item1),
+                        getString(R.string.nav_item2),
+                }));
+        mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
+        return mDrawerListView;
+    }
+    
+    /**
+     * When the parent activity is created, get grab the overall DrawerLayout, 
+     * - set its shadow
+     * - set up the DrawerToggle on it
+     * - set the DrawerLayout's listener to the DrawerToggle
+     * - and sync the DrawerToggle, and open it if the saved state tells us to.
+     */
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+    	super.onActivityCreated(savedInstanceState);
+
+        DrawerLayout drawerLayout = (DrawerLayout) getActivity().findViewById(R.id.drawer_layout);
+        drawerLayout.setDrawerShadow(R.drawable.drawer_shadow, GravityCompat.START);
+        setupActionBarDrawerToggle(drawerLayout);
+
+        if (!mUserLearnedDrawer && !mFromSavedInstanceState) {
+        	mDrawerHolderCallbacks.onUserHasntLearntAboutDrawer();
+        }
+
+        drawerLayout.setDrawerListener(mDrawerToggle);
+
+        // Defer code dependent on restoration of previous instance state.
+        drawerLayout.post(new Runnable() {
+            @Override
+            public void run() {
+                mDrawerToggle.syncState();
+            }
+        });
+    }
+    
+    /**
+     * - Setup the ActionBar's home as up
+     * - Setup the ActionBar's home button as enabled
+     * Then create the DrawerToggle, by 
+     * - Setting its icon
+     * - Telling it to invalidate the activity's options menu when the nav closes / opens, so to restore those 
+     * And once we know the drawer is openeed, set the 'is learnt' preference to true.
+     */
+    private void setupActionBarDrawerToggle(DrawerLayout drawerLayout) {
+		ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setHomeButtonEnabled(true);
+
+        mDrawerToggle = new ActionBarDrawerToggle(
+                getActivity(),                    
+                drawerLayout,                    
+                R.drawable.ic_drawer,             
+                R.string.navigation_drawer_open,  
+                R.string.navigation_drawer_close  
+        ) {
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                if (!isAdded()) {
+                    return;
+                }
+                mIsDrawerOpen = false;
+                getActivity().invalidateOptionsMenu(); // Restore context menus for fragments  + activity
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                if (!isAdded()) {
+                    return;
+                }
+
+                if (!mUserLearnedDrawer) {
+                    mUserLearnedDrawer = true;
+                    SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                    sp.edit().putBoolean(PREF_USER_LEARNED_DRAWER, true).apply();
+                }
+
+                mIsDrawerOpen = true;
+                getActivity().invalidateOptionsMenu(); // Refresh, i.e. disable, context menus for fragments  + activity 
+            }
+        };
+	}
+
+    /**
+     * When the drawer is open, set the title from the string resources, and save the old 
+     * title in order to restore it later.
+     * Else, if we have a previous activity title to restore, i.e. we've close the nav drawer,
+     * and want to restore the previously visible fragment's title, restore it.
+     */
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        ActionBar actionBar = getActivity().getActionBar();
+        // The if statement is used since this method will be also called when the fragment
+        // lives and but the drawer is closed.
+        if (mChildFragmentManagerCallbacks.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NAV_MENU_FRAGMENT, null)) {
+            inflater.inflate(R.menu.nav_drawer_fragment_options, menu);
+            actionBar.setDisplayShowTitleEnabled(true);
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
+            mPreviousFragmentTitleToRestore = getActivity().getActionBar().getTitle(); 
+            actionBar.setTitle(R.string.app_name);
+        } else {
+            if(mPreviousFragmentTitleToRestore!=null && !mPreviousFragmentTitleToRestore.equals(getString(R.string.app_name))) {
+            	actionBar.setTitle(mPreviousFragmentTitleToRestore);
+            	mPreviousFragmentTitleToRestore = null;
+            }
+        }
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle.onOptionsItemSelected(item)) { // As specified by the DrawerToggle's implementation
+            return true;
+        }
+    	if (item.getItemId() == R.id.action_global) {
+    		Toast.makeText(getActivity(), "Global action.", Toast.LENGTH_SHORT).show();
+    		return true;
+    	}
+        return super.onOptionsItemSelected(item);
+    }
+
+
+    /**
+     * From the position as passed from the ListView, select a fragment name, as represented
+     * by a id resource, to then pass to the parent fragment / activity in order to open 
+     * a navigation item.
+     */
+    private void openNavivgationItem(int position) {
+        if (mDrawerHolderCallbacks != null) {
+        	int fragmentResourceId = -1;
+        	switch (position) {
+			case 0:
+				fragmentResourceId = R.id.section_one_fragment;
+				break;
+			case 1:
+				fragmentResourceId = R.id.section_two_fragment;
+				break;
+			default:
+				fragmentResourceId = R.id.section_one_fragment;
+				Log.e(getClass().getSimpleName(), "Couldn't match listview to fragment id.");
+				break;
+			}
+            mDrawerHolderCallbacks.onNavigationDrawerItemSelected(fragmentResourceId);
+        }
+    }
+
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/ChildFragmentsManager.java
+
+package $PROJECT_PACKAGE_BASE_JAVA;
+
+    /**
+     * Implemented by fragments that are children of an FragmentActivity / parent Fragment
+     *
+     */
+    public interface ChildFragmentsManager {
+    public static int NORMAL_FRAGMENT = 0;
+    public static int NAV_MENU_FRAGMENT = 1;
+    /**
+     * Used by the child fragment when it's about to show the options menu
+     * @param fragmentType a static int on ChildFragmentsManager
+     * @param fragmentName not currently used
+     */
+    boolean shouldChildSetOptionsMenuAndActionBar(int fragmentType, String fragmentName);
+    /**
+     * Used by the child instead of setTitle(), since the parent Fragment / FragmentActivity may want to control this itself.
+     * @param title
+     */
+    void setTitleFromChild(String title);
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav/NavigationDrawerCallbacks.java
+
+package $PROJECT_PACKAGE_BASE_JAVA.nav;
+
+    /**
+     * Implemented by the Activity / Fragment that contains a navigation menu
+     */
+    public interface NavigationDrawerCallbacks {
+    /**
+     * Used by the navigation drawer fragment to tell the main Fragment / FragmentActivity what screen to show
+     */
+    void onNavigationDrawerItemSelected(int resourceId);
+    /**
+     * Used by the navigation drawer fragment to tell the main Fragment / FragmentActivity that the user
+     * has not yet learnt of the drawer, the main Fragment, depending on implementation, then opens it to show the user.
+     */
+    void onUserHasntLearntAboutDrawer();
+}
+
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/fragment_navigation_drawer.xml
+<ListView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#cccc"
+    android:choiceMode="singleChoice"
+    android:divider="@android:color/transparent"
+    android:dividerHeight="0dp" />
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/nav_drawer_main_layout.xml
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <FrameLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <fragment
+        android:id="@+id/navigation_drawer"
+        android:name="$PROJECT_PACKAGE_BASE_JAVA.nav.NavigationDrawerFragment"
+        android:layout_width="@dimen/navigation_drawer_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="left" />
+</android.support.v4.widget.DrawerLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/menu/nav_drawer_fragment_options.xml
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <item
+        android:id="@+id/action_global"
+        android:showAsAction="withText|ifRoom"
+        android:title="global"/>
+
+</menu>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/values/ids.xml
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="section_one_fragment" />
+    <item type="id" name="section_two_fragment" />
+</resources>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/NavItemOneFragment.java
+package $PROJECT_PACKAGE_BASE_JAVA;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.widget.TextView;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+import android.preference.PreferenceManager;
+
+import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+public class NavItemOneFragment extends Fragment {
+
+    private ChildFragmentsManager mChildFragmentsManager;
+
+	public NavItemOneFragment() {}
+	
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    	setHasOptionsMenu(true);
+        View rootView = inflater.inflate(R.layout.drawer_item_one_fragment, container, false);
+        return rootView;
+    }
+    
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+        	mChildFragmentsManager = (ChildFragmentsManager) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Activity must implement ChildFragmentsManager.");
+        }
+    }
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+        mChildFragmentsManager.setTitleFromChild(getString(R.string.drawer_item_one_title));
+        String preferenceString = PreferenceManager
+          	.getDefaultSharedPreferences(getActivity().getApplicationContext())
+           	.getString(getString(R.string.settings_edittext_key), "EditTextPreference preference not set yet.");
+        TextView preferencesTextView = (TextView) getView().findViewById(R.id.main_activity_preferences_string_textview);
+        preferencesTextView.setText(preferenceString);
+    }
+    
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    	super.onCreateOptionsMenu(menu, inflater);
+		if (mChildFragmentsManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
+    		inflater.inflate(R.menu.drawer_item_one_menu, menu);
+    	}
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+    	if (item.getItemId() == R.id.drawer_item_one_menu_action) {
+    		Toast.makeText(getActivity(), "Fragment one.", Toast.LENGTH_SHORT).show();
+    		return true;
+    	}
+    	return super.onOptionsItemSelected(item);
+    }
+
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/drawer_item_one_fragment.xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/frag1_rl"
+    >
+
+     <TextView
+        android:id="@+id/main_activity_preferences_string_textview"
+        android:layout_width="wrap_content"
+        android:layout_below="@id/main_activity_customview"
+        android:layout_centerHorizontal="true"
+        android:layout_height="wrap_content"
+        />
+
+     <EditText
+         android:id="@+id/section_label"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content"
+         android:layout_centerHorizontal="true"
+         android:layout_below="@+id/main_activity_preferences_string_textview"
+         android:text="1" >
+     </EditText>
+
+</RelativeLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/menu/drawer_item_one_menu.xml
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item
+        android:id="@+id/drawer_item_one_menu_action"
+        android:orderInCategory="50"
+        android:showAsAction="always"
+        android:title="frag"/>
+</menu>
+END_HEREDOC
+
+
+
+
+echo "###---> Creating dimens.xml"
+
+cat << END_HEREDOC > src/main/res/values/dimens.xml
+<resources>
+    <!--
+         Per the design guidelines, navigation drawers should be between 240dp and 320dp:
+         https://developer.android.com/design/patterns/navigation-drawer.html
+    -->
+    <dimen name="navigation_drawer_width">240dp</dimen>
+</resources>
 END_HEREDOC
 
 

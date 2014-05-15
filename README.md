@@ -9,6 +9,7 @@ Features
 - Actionbar from compatibility project
 - Custom view with attributes
 - View Pager with PagerSlidingTabStrip
+- Navigation drawer with saved fragment state
 - Preferences activity
 - Licences activity
 - Main Activity and layout
@@ -45,7 +46,7 @@ Android Studio integration
 Todo
 ----
 
-- Navigation menu, left and right
+- Navigation menu, on the right
 - Navigation menu sub menus
 - List view with images
 - Swipe to refresh
