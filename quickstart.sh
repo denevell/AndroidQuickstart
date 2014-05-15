@@ -56,6 +56,7 @@ cd $PROJECT_NAME
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav
+mkdir -p src/main/java/android/support/v4/app
 mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
 	rm res 
@@ -286,6 +287,39 @@ public class Application extends android.app.Application {
 
 }
 END_HEREDOC
+
+
+
+echo "###---> Fix missing classpath in Fragment SavedState"
+
+cat << END_HEREDOC > src/main/java/android/support/v4/app/FixedSavedState.java
+package android.support.v4.app;
+
+import android.os.Bundle;
+import android.os.Parcel;
+
+import $PROJECT_PACKAGE_BASE_JAVA.nav.NavManagerFragmentActivity;
+
+/**
+ * Fixed missing class loader problem
+ */
+public class FixedSavedState extends Fragment.SavedState {
+    FixedSavedState(Bundle b) {
+        super(b);
+    }
+
+    FixedSavedState(Parcel in, ClassLoader loader) {
+        super(in, loader);
+    }
+
+    public FixedSavedState(Fragment.SavedState ss) {
+        super(ss.mState);
+        ss.mState.setClassLoader(NavManagerFragmentActivity.class.getClassLoader());
+    }
+
+}
+END_HEREDOC
+
 
 
 echo "###---> Licences activity"
@@ -836,6 +870,7 @@ import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.Fragment.SavedState;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FixedSavedState;
 import android.support.v4.widget.DrawerLayout;
 import android.util.Log;
 import android.view.Menu;
@@ -1035,7 +1070,10 @@ public class NavManagerFragmentActivity extends FragmentActivity
      */
     private void setFragmentsSavedState(Fragment fragment) {
         SavedState savedState = mSavedStates.get(fragment.getClass().getSimpleName());
-        if(savedState!=null) fragment.setInitialSavedState(savedState);
+        if(savedState!=null) {
+            FixedSavedState pp = new FixedSavedState(savedState);
+            fragment.setInitialSavedState(pp);
+        }
     }
 
 }

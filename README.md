@@ -47,11 +47,14 @@ Todo
 ----
 
 - Crash when non google play services installed.
+- Take a picture with camera
 - Navigation menu, on the right
+- Fragment navigation
+- Retrofit and Okhttp for networking
+
 - Navigation menu sub menus
 - List view with images
 - Swipe to refresh
-- Fragment navigation
 - Espresso imports
 - Espresso test
 - Robolectric tests
@@ -59,7 +62,6 @@ Todo
 - Push messaging
 - Production key for maps
 - Image downloading and caching
-- Retrofit and Okhttp for networking
 - Intent service
 - Service
 - Endless listview
