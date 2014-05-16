@@ -107,12 +107,24 @@ dependencies {
         compile 'com.squareup.dagger:dagger-compiler:1.2.1'
         compile 'com.squareup.dagger:dagger:1.2.1'
         compile 'com.squareup:otto:1.3.4'
+	compile 'com.squareup.retrofit:retrofit:1.5.1'
+	compile 'com.squareup.okhttp:okhttp:1.5.4'
+        compile('org.simpleframework:simple-xml:2.7.+'){
+            exclude module: 'stax'
+            exclude module: 'stax-api'
+            exclude module: 'xpp3'
+        }
+        compile('com.squareup.retrofit:converter-simplexml:1.5.1') {
+            exclude module: 'stax'
+            exclude module: 'stax-api'
+            exclude module: 'xpp3'
+        }
         compile 'com.astuetz:pagerslidingtabstrip:1.0.1'
         compile 'com.bugsense.trace:bugsense:3.6'
         compile 'org.mockito:mockito-all:1.9.5'
-        compile 'org.apache.commons:commons-lang3:3.1'
-        compile(group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '2.4.9-0.8', classifier: 'android-x86')
-        compile(group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '2.4.9-0.8')
+        //compile 'org.apache.commons:commons-lang3:3.1'
+        //compile(group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '2.4.9-0.8', classifier: 'android-x86')
+        //compile(group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '2.4.9-0.8')
 }
 
 android {

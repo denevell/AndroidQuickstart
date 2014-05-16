@@ -46,10 +46,12 @@ Android Studio integration
 Todo
 ----
 
+- Retrofit and Okhttp for networking
+
+- Cache service results
 - Take a picture with camera
 - Navigation menu, on the right
 - Fragment navigation
-- Retrofit and Okhttp for networking
 
 - Navigation menu sub menus
 - List view with images
