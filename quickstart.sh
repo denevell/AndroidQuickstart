@@ -111,6 +111,8 @@ dependencies {
         compile 'com.bugsense.trace:bugsense:3.6'
         compile 'org.mockito:mockito-all:1.9.5'
         compile 'org.apache.commons:commons-lang3:3.1'
+        compile(group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '2.4.9-0.8', classifier: 'android-x86')
+        compile(group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: '2.4.9-0.8')
 }
 
 android {
