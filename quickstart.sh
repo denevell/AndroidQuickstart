@@ -56,6 +56,8 @@ cd $PROJECT_NAME
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav
+mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/services
+mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/networking
 mkdir -p src/main/java/android/support/v4/app
 mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
@@ -291,12 +293,18 @@ echo "###---> Application class"
 cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/Application.java
 package $PROJECT_PACKAGE_BASE_JAVA;
 
+import com.squareup.otto.Bus;
+
 public class Application extends android.app.Application {
     protected static final String TAG = "$PROJECT_NAME Application class";
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
+    private static Bus sEventBus;
+
+    public static Bus getEventBus() {
+        if(sEventBus==null) {
+            sEventBus = new com.squareup.otto.Bus();
+        }
+        return sEventBus;
     }
 
 }
@@ -768,7 +776,7 @@ public class ViewPagerFragment extends Fragment {
         public FragmentPageAdapter(FragmentManager fm) {
             super(fm);
             mFragments = new ArrayList<Fragment>();
-            mFragments.add(new RedFragment());
+            mFragments.add(new ServiceExampleFragment());
             mTabNames.add(getString(R.string.tab_viewpager_one));
             mFragments.add(new GreenFragment());
             mTabNames.add(getString(R.string.tab_viewpager_two));
@@ -899,7 +907,7 @@ import $PROJECT_PACKAGE_BASE_JAVA.ViewPagerFragment;
 import $PROJECT_PACKAGE_BASE_JAVA.PreferencesActivity;
 import $PROJECT_PACKAGE_BASE_JAVA.MapFragment;
 import $PROJECT_PACKAGE_BASE_JAVA.LicencesActivity;
-import $PROJECT_PACKAGE_BASE_JAVA.NavItemOneFragment;
+import $PROJECT_PACKAGE_BASE_JAVA.PreferencesViewFragment;
 import $PROJECT_PACKAGE_BASE_JAVA.R;
 
 /**
@@ -1049,7 +1057,7 @@ public class NavManagerFragmentActivity extends FragmentActivity
     	Fragment fragment = null;
 	switch (resourceId) {
 		case R.id.section_one_fragment:
-    		fragment = new NavItemOneFragment();
+    		fragment = new PreferencesViewFragment();
     	   	setFragmentsSavedState(fragment);
 		break;
 		case R.id.section_two_fragment:
@@ -1537,7 +1545,7 @@ cat << END_HEREDOC > src/main/res/values/ids.xml
 </resources>
 END_HEREDOC
 
-cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/NavItemOneFragment.java
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/PreferencesViewFragment.java
 package $PROJECT_PACKAGE_BASE_JAVA;
 
 import android.app.Activity;
@@ -1556,11 +1564,11 @@ import android.preference.PreferenceManager;
 import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
 import $PROJECT_PACKAGE_BASE_JAVA.R;
 
-public class NavItemOneFragment extends Fragment {
+public class PreferencesViewFragment extends Fragment {
 
     private ChildFragmentsManager mChildFragmentsManager;
 
-	public NavItemOneFragment() {}
+	public PreferencesViewFragment() {}
 	
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -1648,6 +1656,345 @@ cat << END_HEREDOC > src/main/res/menu/drawer_item_one_menu.xml
 </menu>
 END_HEREDOC
 
+
+
+
+echo "###---> Creating Services code, including test fragment and Retrofit service classes"
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/ServiceExampleFragment.java
+package $PROJECT_PACKAGE_BASE_JAVA;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.squareup.otto.Subscribe;
+
+import $PROJECT_PACKAGE_BASE_JAVA.services.RecentPostsService;
+import $PROJECT_PACKAGE_BASE_JAVA.services.XmlTestService;
+
+public class ServiceExampleFragment extends Fragment {
+
+    private ChildFragmentsManager mChildFragmentsManager;
+
+	public ServiceExampleFragment() {}
+	
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    	setHasOptionsMenu(true);
+        View rootView = inflater.inflate(R.layout.services_example_fragment, container, false);
+        return rootView;
+    }
+    
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+        	mChildFragmentsManager = (ChildFragmentsManager) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Activity must implement ChildFragmentsManager.");
+        }
+        Application.getEventBus().register(this);
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Application.getEventBus().unregister(this);
+    }
+
+    @Override
+    public void onResume() {
+    	super.onResume();
+        mChildFragmentsManager.setTitleFromChild(getString(R.string.drawer_item_one_title));
+        new RecentPostsService().fetch(0, 10);
+        new XmlTestService().fetch();
+    }
+
+    @Subscribe
+    public void onRecentPosts(RecentPostsService.RecentPosts posts) {
+       int i = 0;
+    }
+
+    @Subscribe
+    public void onRecentPostsError(RecentPostsService.RecentPostsError error) {
+        int i = 0;
+    }
+
+    @Subscribe
+    public void onXmlTest(XmlTestService.Hi posts) {
+        int i = 0;
+    }
+
+    @Subscribe
+    public void onXmlTestError(XmlTestService.HiError error) {
+        int i = 0;
+    }
+
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/services_example_fragment.xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/services_example_fragment_rl"
+    >
+
+     <TextView
+        android:id="@+id/services_example_fragment_textview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+	android:text="Services example"
+        />
+
+</RelativeLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/networking/ErrorResponse.java
+package $PROJECT_PACKAGE_BASE_JAVA.networking;
+
+public class ErrorResponse {
+    public int responseCode;
+    public String responseMessage;
+    public String url;
+    public boolean isNetworkError;
+
+    public void fill(int httpCode, String errorMessage, String url, boolean isNetworkError) {
+       this.responseCode = httpCode;
+       this.responseMessage = errorMessage;
+       this.url = url;
+       this.isNetworkError = isNetworkError;
+    }
+
+    public int getResponseCode() {
+        return responseCode;
+    }
+
+    public void setResponseCode(int responseCode) {
+        this.responseCode = responseCode;
+    }
+
+    public String getResponseMessage() {
+        return responseMessage;
+    }
+
+    public void setResponseMessage(String responseMessage) {
+        this.responseMessage = responseMessage;
+    }
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/networking/MessageBusService.java
+package $PROJECT_PACKAGE_BASE_JAVA.networking;
+
+import android.os.AsyncTask;
+import android.util.Log;
+
+import com.google.gson.Gson;
+
+import $PROJECT_PACKAGE_BASE_JAVA.Application;
+
+import retrofit.RestAdapter;
+import retrofit.RetrofitError;
+import retrofit.converter.Converter;
+import retrofit.converter.GsonConverter;
+
+/**
+ * Perform a call on a RetroFit service and sends the result or error to the event bus.
+ */
+public class MessageBusService<ReturnResult, ServiceClass> {
+
+    private static final String TAG = MessageBusService.class.getSimpleName();
+
+    public static abstract class GetResult<ReturnResult, ServiceClass>  {
+        public abstract ReturnResult getResult(ServiceClass mService);
+    }
+
+    public void fetch(String endPoint,
+                     Class<ServiceClass> serviceClass,
+                     ErrorResponse errorResponse,
+                     final GetResult<ReturnResult, ServiceClass> getResult) {
+        fetch(endPoint, serviceClass, errorResponse, new GsonConverter(new Gson()), getResult);
+    }
+
+    public void fetch(final String endPoint,
+                      Class<ServiceClass> serviceClass,
+                      final ErrorResponse errorResponse,
+                      Converter converter,
+                      final GetResult<ReturnResult, ServiceClass> getResult) {
+
+        // Create the Retrofit adapter based on the service class
+        final RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(endPoint)
+                .setConverter(converter)
+                .build();
+        final ServiceClass service = restAdapter.create(serviceClass);
+
+        // Call the service in an async task, sending the success or error to the event bus
+        new AsyncTask<Void, Void, ReturnResult>() {
+            @Override
+            protected ReturnResult doInBackground(Void... params) {
+                try {
+                    Log.d(TAG, "Attempting to fetch result from base url: " + endPoint);
+                    ReturnResult res = getResult.getResult(service);
+                    if(res!=null) {
+                        Log.d(TAG, "Fetched : " + res.toString() + " from " + endPoint);
+                    }
+                    return res;
+                } catch (RetrofitError e) {
+                    errorResponse.fill(e.getResponse().getStatus(),
+                                       e.getResponse().getReason(),
+                                       e.getResponse().getUrl(),
+                                       e.isNetworkError());
+                    return null;
+                } catch(Exception e1) {
+                    Log.e(TAG, "Unknown error", e1);
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(ReturnResult res) {
+                if(res!=null) {
+                    super.onPostExecute(res);
+                    Application.getEventBus().post(res);
+                }  else if(res==null && errorResponse!=null) {
+                    Application.getEventBus().post(errorResponse);
+                }
+            }
+        }.execute();
+    }
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/services/RecentPostsService.java
+package $PROJECT_PACKAGE_BASE_JAVA.services;
+
+import $PROJECT_PACKAGE_BASE_JAVA.networking.ErrorResponse;
+import $PROJECT_PACKAGE_BASE_JAVA.networking.MessageBusService;
+import $PROJECT_PACKAGE_BASE_JAVA.networking.MessageBusService.GetResult;
+
+import java.util.List;
+
+import retrofit.http.GET;
+import retrofit.http.Path;
+
+public class RecentPostsService {
+
+    private MessageBusService<RecentPosts, RecentPostsServiceInterface> mService;
+
+    public RecentPostsService() {
+        mService = new MessageBusService<>();
+    }
+
+    public void fetch(final int start, final int num) {
+        mService.fetch(
+            "https://android-manchester.co.uk/api/rest1",
+            RecentPostsServiceInterface.class,
+            new RecentPostsError(),
+            new GetResult<RecentPosts, RecentPostsServiceInterface>() {
+                @Override public RecentPosts getResult(RecentPostsServiceInterface service) {
+                    return service.go(start, num);
+                }
+            });
+    }
+
+    public static interface RecentPostsServiceInterface {
+        @GET("/post/{start}/{num}")
+        RecentPosts go(@Path("start") int start, @Path("num") int num);
+    }
+
+    public static class RecentPosts {
+
+        private List<Post> posts;
+
+        public List<Post> getPosts() {
+            return posts;
+        }
+
+        public void setPosts(List<Post> posts) {
+            this.posts = posts;
+        }
+
+        private class Post {
+            private String subject;
+
+            public String getSubject() {
+                return subject;
+            }
+
+            public void setSubject(String subject) {
+                this.subject = subject;
+            }
+        }
+    }
+
+    public static class RecentPostsError extends ErrorResponse {}
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/services/XmlTestService.java
+package $PROJECT_PACKAGE_BASE_JAVA.services;
+
+import $PROJECT_PACKAGE_BASE_JAVA.networking.ErrorResponse;
+import $PROJECT_PACKAGE_BASE_JAVA.networking.MessageBusService;
+import org.simpleframework.xml.Attribute;
+import org.simpleframework.xml.Element;
+import org.simpleframework.xml.Root;
+import org.simpleframework.xml.Text;
+
+import retrofit.converter.SimpleXMLConverter;
+import retrofit.http.GET;
+
+public class XmlTestService {
+
+    private final MessageBusService<Hi, XmlServiceInterface> mService;
+
+    public XmlTestService() {
+        mService = new MessageBusService<>();
+    }
+
+    public void fetch() {
+        mService.fetch(
+            "http://denevell.org",
+            XmlServiceInterface.class,
+            new HiError(),
+            new SimpleXMLConverter(),
+            new MessageBusService.GetResult<Hi, XmlServiceInterface>() {
+                    @Override public Hi getResult(XmlServiceInterface service) {
+                        return service.list();
+                    }
+                });
+    }
+
+    public static interface XmlServiceInterface {
+        @GET("/xml1.xml")
+        Hi list();
+    }
+
+    @Root
+    public static class Hi {
+        @Element private There there;
+        public There getThere() { return there; }
+        public void setThere(There there) { this.there = there; }
+        public static class There {
+            @Attribute private String yo;
+            @Text private String value;
+            public String getYo() { return yo; }
+            public void setYo(String yo) { this.yo = yo; }
+            public String getValue() { return value; }
+            public void setValue(String value) { this.value = value; }
+        }
+    }
+
+    public static class HiError extends ErrorResponse {}
+}
+END_HEREDOC
 
 
 
