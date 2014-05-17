@@ -196,7 +196,8 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="nav_item3">Google Maps</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="drawer_item_one_title">Drawer item  one</string>
+    <string name="drawer_item_one_title">Preferences view</string>
+    <string name="view_pager_title">View Pager</string>
 </resources>
 END_HEREDOC
 
@@ -740,6 +741,7 @@ package $PROJECT_PACKAGE_BASE_JAVA;
 
 import java.util.ArrayList;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -756,6 +758,7 @@ import com.astuetz.PagerSlidingTabStrip;
 public class ViewPagerFragment extends Fragment {
 
     private static final String TAG = ViewPagerFragment.class.getSimpleName();
+    private ChildFragmentsManager mChildFragmentsManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -767,6 +770,25 @@ public class ViewPagerFragment extends Fragment {
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) v.findViewById(R.id.viewpager_activity_pageslidingtabstrip);
         tabs.setViewPager(pager);
         return v;
+    }
+
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mChildFragmentsManager = (ChildFragmentsManager) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Activity must implement ChildFragmentsManager.");
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mChildFragmentsManager!=null) {
+            mChildFragmentsManager.setTitleFromChild(getString(R.string.view_pager_title));
+        }
     }
     
     private class FragmentPageAdapter extends FragmentPagerAdapter {
@@ -1669,6 +1691,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.TextView;
 import android.view.ViewGroup;
 
 import com.squareup.otto.Subscribe;
@@ -1679,13 +1702,17 @@ import $PROJECT_PACKAGE_BASE_JAVA.services.XmlTestService;
 public class ServiceExampleFragment extends Fragment {
 
     private ChildFragmentsManager mChildFragmentsManager;
+    private TextView mJsonTextView;
+    private TextView mXmlTextView;
 
-	public ServiceExampleFragment() {}
+    public ServiceExampleFragment() {}
 	
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
     	setHasOptionsMenu(true);
         View rootView = inflater.inflate(R.layout.services_example_fragment, container, false);
+        mJsonTextView = (TextView) rootView.findViewById(R.id.services_example_fragment_json_textview);
+        mXmlTextView = (TextView) rootView.findViewById(R.id.services_example_fragment_xml_textview);
         return rootView;
     }
     
@@ -1709,50 +1736,97 @@ public class ServiceExampleFragment extends Fragment {
     @Override
     public void onResume() {
     	super.onResume();
-        mChildFragmentsManager.setTitleFromChild(getString(R.string.drawer_item_one_title));
         new RecentPostsService().fetch(0, 10);
         new XmlTestService().fetch();
     }
 
     @Subscribe
     public void onRecentPosts(RecentPostsService.RecentPosts posts) {
-       int i = 0;
+        if(mJsonTextView!=null && posts!=null && posts.getPosts()!=null) {
+            String s = "";
+            for (RecentPostsService.RecentPosts.Post p : posts.getPosts()) {
+                s += "\nTitle: " + p.getContent() + "\n";
+            }
+            mJsonTextView.setText(s);
+        }
     }
 
     @Subscribe
     public void onRecentPostsError(RecentPostsService.RecentPostsError error) {
-        int i = 0;
+        if(mJsonTextView!=null && error!=null) {
+            mJsonTextView.setText("Error code: " + error.responseCode + ", isNetwork: " + error.isNetworkError);
+        }
     }
 
     @Subscribe
     public void onXmlTest(XmlTestService.Hi posts) {
-        int i = 0;
+        // Always errors in this example
     }
 
     @Subscribe
     public void onXmlTestError(XmlTestService.HiError error) {
-        int i = 0;
+        if(mXmlTextView!=null) {
+            mXmlTextView.setText("Error code: " + error.responseCode + ", isNetwork: " + error.isNetworkError);
+        }
     }
 
 }
 END_HEREDOC
 
 cat << END_HEREDOC > src/main/res/layout/services_example_fragment.xml
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/services_example_fragment_rl"
+    android:layout_height="wrap_content"
+    android:id="@+id/services_example_scrollview"
     >
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/services_example_fragment_rl"
+        >
 
-     <TextView
-        android:id="@+id/services_example_fragment_textview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-	android:text="Services example"
-        />
+        <TextView
+            android:id="@+id/services_example_fragment_xml_title_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Badly formatted xml:"
+            android:textStyle="bold"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
 
-</RelativeLayout>
+        <TextView
+            android:id="@+id/services_example_fragment_xml_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loading..."
+            android:padding="20dp"
+            android:layout_below="@+id/services_example_fragment_xml_title_textview"
+            android:layout_centerHorizontal="true" />
+
+        <TextView
+            android:id="@+id/services_example_fragment_json_title_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="Valid Json:"
+            android:layout_below="@+id/services_example_fragment_xml_textview"
+            android:layout_centerHorizontal="true" />
+
+        <TextView
+            android:id="@+id/services_example_fragment_json_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Loading..."
+            android:padding="20dp"
+            android:layout_below="@+id/services_example_fragment_json_title_textview"
+            android:layout_alignLeft="@+id/services_example_fragment_xml_textview"
+            android:layout_alignStart="@+id/services_example_fragment_xml_textview" />
+
+    </RelativeLayout>
+
+</ScrollView>
 END_HEREDOC
 
 cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/networking/ErrorResponse.java
@@ -1894,7 +1968,7 @@ public class RecentPostsService {
 
     public void fetch(final int start, final int num) {
         mService.fetch(
-            "https://android-manchester.co.uk/api/rest1",
+            "https://android-manchester.co.uk/api/rest",
             RecentPostsServiceInterface.class,
             new RecentPostsError(),
             new GetResult<RecentPosts, RecentPostsServiceInterface>() {
@@ -1921,15 +1995,15 @@ public class RecentPostsService {
             this.posts = posts;
         }
 
-        private class Post {
-            private String subject;
+        public static class Post {
+            private String content;
 
-            public String getSubject() {
-                return subject;
+            public String getContent() {
+                return content;
             }
 
-            public void setSubject(String subject) {
-                this.subject = subject;
+            public void setContent(String content) {
+                this.content= content;
             }
         }
     }
