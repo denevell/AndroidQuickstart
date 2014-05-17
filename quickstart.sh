@@ -1805,7 +1805,8 @@ cat << END_HEREDOC > src/main/res/layout/services_example_fragment.xml
             android:textStyle="bold"
             android:text="Valid Json:"
             android:layout_below="@+id/services_example_fragment_xml_textview"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            />
 
         <TextView
             android:id="@+id/services_example_fragment_json_textview"
@@ -1814,8 +1815,8 @@ cat << END_HEREDOC > src/main/res/layout/services_example_fragment.xml
             android:text="Loading..."
             android:padding="20dp"
             android:layout_below="@+id/services_example_fragment_json_title_textview"
-            android:layout_alignLeft="@+id/services_example_fragment_xml_textview"
-            android:layout_alignStart="@+id/services_example_fragment_xml_textview" />
+            android:layout_centerHorizontal="true"
+            />
 
     </RelativeLayout>
 

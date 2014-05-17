@@ -53,23 +53,23 @@ Todo
 - Fragment navigation
 
 - Save ViewPager fragment's state
-- Navigation menu sub menus
+- Swipe to refresh / Loading icon
 - List view with images
-- Swipe to refresh
+- Image downloading and caching
+- Checks for connectivity
+- Navigation menu sub menus
 - Espresso imports
 - Espresso test
 - Robolectric tests
 - Product flavours
 - Push messaging
 - Production key for maps
-- Image downloading and caching
 - Intent service
 - Service
 - Endless listview
 - Staggered listview
 - Pull to refresh
 - Form validation
-- Checks for connectivity
 - Wizard Page adapter
 - Actionbar action menu
 - Actionbar tabs drop down
