@@ -10,9 +10,10 @@ Features
 - Custom view with attributes
 - View Pager with PagerSlidingTabStrip
 - Navigation drawer with saved fragment state
+- Retfrofit and OkHttp for networking
+- A service abstraction using Otto events to pass service responses error
 - Preferences activity
 - Licences activity
-- Main Activity and layout
 - Application class
 - Build types / variants
 - Signing release build
@@ -46,13 +47,12 @@ Android Studio integration
 Todo
 ----
 
-- Retrofit and Okhttp for networking
-
 - Cache service results
 - Take a picture with camera
 - Navigation menu, on the right
 - Fragment navigation
 
+- Save ViewPager fragment's state
 - Navigation menu sub menus
 - List view with images
 - Swipe to refresh

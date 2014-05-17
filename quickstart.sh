@@ -749,6 +749,9 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -769,9 +772,9 @@ public class ViewPagerFragment extends Fragment {
 
         PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) v.findViewById(R.id.viewpager_activity_pageslidingtabstrip);
         tabs.setViewPager(pager);
+        setHasOptionsMenu(true);	
         return v;
     }
-
 
     @Override
     public void onAttach(Activity activity) {
@@ -783,10 +786,13 @@ public class ViewPagerFragment extends Fragment {
         }
     }
 
+    /**
+     * Setting the title here since, an options menu invalidation may change the title in the nav bar
+     */
     @Override
-    public void onResume() {
-        super.onResume();
-        if(mChildFragmentsManager!=null) {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        if(mChildFragmentsManager!=null && mChildFragmentsManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
             mChildFragmentsManager.setTitleFromChild(getString(R.string.view_pager_title));
         }
     }
@@ -1010,8 +1016,8 @@ public class NavManagerFragmentActivity extends FragmentActivity
      * Used to work out if child fragments should set their options menu / action bar stuff
      * @return
      */
-     private boolean isDrawerOpen() {
-        return mDrawerLayout != null && mNavDrawerView != null && mDrawerLayout.isDrawerOpen(mNavDrawerView);
+     private boolean isDrawerVisible() {
+        return mDrawerLayout != null && mNavDrawerView != null && mDrawerLayout.isDrawerVisible(mNavDrawerView);
      }
 
     /**
@@ -1020,7 +1026,7 @@ public class NavManagerFragmentActivity extends FragmentActivity
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!isDrawerOpen()) {
+        if (!isDrawerVisible()) {
             getMenuInflater().inflate(R.menu.nav_main_activity_options, menu);
             return true;
         }
@@ -1049,9 +1055,9 @@ public class NavManagerFragmentActivity extends FragmentActivity
      */
     @Override
     public boolean shouldChildSetOptionsMenuAndActionBar(int fragmentType, String fragmentName) {
-    	if(fragmentType==ChildFragmentsManager.NORMAL_FRAGMENT && !isDrawerOpen()) {
+    	if(fragmentType==ChildFragmentsManager.NORMAL_FRAGMENT && !isDrawerVisible()) {
     		return true;
-    	} else if(fragmentType==ChildFragmentsManager.NAV_MENU_FRAGMENT && isDrawerOpen()) {
+    	} else if(fragmentType==ChildFragmentsManager.NAV_MENU_FRAGMENT && isDrawerVisible()) {
     		return true;
     	} else {
     		return false;
@@ -1186,16 +1192,13 @@ import $PROJECT_PACKAGE_BASE_JAVA.R;
  * We save the open / closed drawer state in the lifecycle methods, so if they say the drawer was already
  * opened then we open it in the onResume method call.
  * 
- * The option menu create method asks the host if it should set the options / title / actionbar, and the hosts 
- * says yes if the drawer is open. If the host says yes it also saves the previously title on the host, and when
- * the host says "no, don't set the options menu etc" it restores that title (and nulls the title so it
- * can't set it again).
+ * The option menu create method asks the host if it should set the options / title / actionbar, and the host
+ * says yes, set it.
  */
 public class NavigationDrawerFragment extends Fragment {
 
     private static final String STATE_SELECTED_POSITION = "selected_navigation_drawer_position";
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
-	private static final String STATE_PREVIOUS_TITLE = "previous_title";
 	private static final String STATE_DRAWER_OPEN = "drawer_open";
     private NavigationDrawerCallbacks mDrawerHolderCallbacks;
     private ChildFragmentsManager mChildFragmentManagerCallbacks;
@@ -1210,10 +1213,6 @@ public class NavigationDrawerFragment extends Fragment {
      */
     private boolean mFromSavedInstanceState;
     private boolean mUserLearnedDrawer;
-    /**
-     * Used to reset the previous fragment title when the nav drawer closes
-     */
-	private CharSequence mPreviousFragmentTitleToRestore;
 	protected boolean mIsDrawerOpen;
 
     public NavigationDrawerFragment() {}
@@ -1235,7 +1234,6 @@ public class NavigationDrawerFragment extends Fragment {
         if (savedInstanceState != null) {
             mIsDrawerOpen = savedInstanceState.getBoolean(STATE_DRAWER_OPEN);
             mCurrentSelectedPosition = savedInstanceState.getInt(STATE_SELECTED_POSITION);
-            mPreviousFragmentTitleToRestore = savedInstanceState.getCharSequence(STATE_PREVIOUS_TITLE);
             mFromSavedInstanceState = true;
         }
 
@@ -1259,7 +1257,6 @@ public class NavigationDrawerFragment extends Fragment {
         super.onSaveInstanceState(outState);
         outState.putBoolean(STATE_DRAWER_OPEN, mIsDrawerOpen);
         outState.putInt(STATE_SELECTED_POSITION, mCurrentSelectedPosition);
-        outState.putCharSequence(STATE_PREVIOUS_TITLE, mPreviousFragmentTitleToRestore);
     }
 
     @Override
@@ -1408,19 +1405,11 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         ActionBar actionBar = getActivity().getActionBar();
-        // The if statement is used since this method will be also called when the fragment
-        // lives and but the drawer is closed.
         if (mChildFragmentManagerCallbacks.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NAV_MENU_FRAGMENT, null)) {
             inflater.inflate(R.menu.nav_drawer_fragment_options, menu);
             actionBar.setDisplayShowTitleEnabled(true);
             actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
-            mPreviousFragmentTitleToRestore = getActivity().getActionBar().getTitle(); 
             actionBar.setTitle(R.string.app_name);
-        } else {
-            if(mPreviousFragmentTitleToRestore!=null && !mPreviousFragmentTitleToRestore.equals(getString(R.string.app_name))) {
-            	actionBar.setTitle(mPreviousFragmentTitleToRestore);
-            	mPreviousFragmentTitleToRestore = null;
-            }
         }
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -1620,12 +1609,16 @@ public class PreferencesViewFragment extends Fragment {
         preferencesTextView.setText(preferenceString);
     }
     
+    /**
+     * Setting the title here since, an options menu invalidation may change the title in the nav bar
+     */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     	super.onCreateOptionsMenu(menu, inflater);
-		if (mChildFragmentsManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
-    		inflater.inflate(R.menu.drawer_item_one_menu, menu);
-    	}
+        if (mChildFragmentsManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
+            inflater.inflate(R.menu.drawer_item_one_menu, menu);
+            mChildFragmentsManager.setTitleFromChild(getString(R.string.drawer_item_one_title));
+        }
     }
     
     @Override
