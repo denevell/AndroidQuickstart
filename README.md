@@ -47,8 +47,6 @@ Android Studio integration
 Todo
 ----
 
-- Save ViewPager fragment's state
-
 - Cache service results
 - Take a picture with camera
 - Navigation menu, on the right
