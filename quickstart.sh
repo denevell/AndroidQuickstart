@@ -765,15 +765,20 @@ public class ViewPagerFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
         View v = inflater.inflate(R.layout.viewpager_fragment, container, false);
-            
-        ViewPager pager = (ViewPager) v.findViewById(R.id.viewpager_activity_viewpager);
-        pager.setAdapter(new FragmentPageAdapter(getChildFragmentManager()));
-
-        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) v.findViewById(R.id.viewpager_activity_pageslidingtabstrip);
-        tabs.setViewPager(pager);
-        setHasOptionsMenu(true);	
         return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        ViewPager pager = (ViewPager) view.findViewById(R.id.viewpager_activity_viewpager);
+        pager.setOffscreenPageLimit(3);
+        PagerSlidingTabStrip tabs = (PagerSlidingTabStrip) view.findViewById(R.id.viewpager_activity_pageslidingtabstrip);
+        FragmentPageAdapter adapter = new FragmentPageAdapter(getChildFragmentManager());
+        pager.setAdapter(adapter);
+        tabs.setViewPager(pager);
     }
 
     @Override
@@ -798,44 +803,46 @@ public class ViewPagerFragment extends Fragment {
     }
     
     private class FragmentPageAdapter extends FragmentPagerAdapter {
-        private ArrayList<Fragment> mFragments = new ArrayList<Fragment>();
-        private ArrayList<String > mTabNames = new ArrayList<String>();
-        
         public FragmentPageAdapter(FragmentManager fm) {
             super(fm);
-            mFragments = new ArrayList<Fragment>();
-            mFragments.add(new ServiceExampleFragment());
-            mTabNames.add(getString(R.string.tab_viewpager_one));
-            mFragments.add(new GreenFragment());
-            mTabNames.add(getString(R.string.tab_viewpager_two));
         }
         
         @Override
         public CharSequence getPageTitle(int position) {
-        	return mTabNames.get(position);
+            switch (position) {
+                case 0:
+                    return getString(R.string.tab_viewpager_one);
+                case 1:
+                    return getString(R.string.tab_viewpager_two);
+                default:
+                    return getString(R.string.tab_viewpager_one);
+            }
         }
 
         @Override
-	    public Fragment getItem(int arg0) {
-	        return mFragments.get(arg0);
+	    public Fragment getItem(int position) {
+            switch (position) {
+                case 0:
+                    return new ServiceExampleFragment();
+                case 1:
+                    return new GreenFragment();
+                default:
+                    return new GreenFragment();
+            }
     	}
 
-	    @Override
+        @Override
+        public Object instantiateItem(ViewGroup container, int position) {
+            Object f = super.instantiateItem(container, position);
+            return f;
+        }
+
+        @Override
     	public int getCount() {
-    	    return mFragments.size();
+    	    return 2;
     	}
     }
     
-    public static class RedFragment extends Fragment {
-        public RedFragment() {} 
-        
-    	@Override
-    	public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-    		View v = inflater.inflate(R.layout.red, container, false);
-    		return v;
-    	}
-    }
-
     public static class GreenFragment extends Fragment {
         public GreenFragment() {} 
 
@@ -880,19 +887,6 @@ END_HEREDOC
 
 
 echo "###---> Fragment layouts for view pager"
-
-cat << END_HEREDOC > src/main/res/layout/red.xml
-    <LinearLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-    	xmlns:tools="http://schemas.android.com/tools"
-    	xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/licences_activity_relativelayout"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:background="#f00"
-        android:orientation="vertical" >
-    </LinearLayout>
-END_HEREDOC
 
 cat << END_HEREDOC > src/main/res/layout/green.xml
     <LinearLayout
@@ -1097,7 +1091,7 @@ public class NavManagerFragmentActivity extends FragmentActivity
     	   	setFragmentsSavedState(fragment);
 		break;
 		default:
-    		fragment = new ViewPagerFragment.RedFragment();
+    		fragment = new ViewPagerFragment.GreenFragment();
 			Log.e(getClass().getSimpleName(), "Couldn't match fragment id to fragment object.");
 			break;
 	}
@@ -1651,6 +1645,7 @@ cat << END_HEREDOC > src/main/res/layout/drawer_item_one_fragment.xml
 
      <EditText
          android:id="@+id/section_label"
+         android:inputType="text"
          android:layout_width="wrap_content"
          android:layout_height="wrap_content"
          android:layout_centerHorizontal="true"
@@ -1776,7 +1771,7 @@ cat << END_HEREDOC > src/main/res/layout/services_example_fragment.xml
     >
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/services_example_fragment_rl"
         >
 
@@ -1794,6 +1789,7 @@ cat << END_HEREDOC > src/main/res/layout/services_example_fragment.xml
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Loading..."
+            android:freezesText="true"
             android:padding="20dp"
             android:layout_below="@+id/services_example_fragment_xml_title_textview"
             android:layout_centerHorizontal="true" />
@@ -1813,6 +1809,7 @@ cat << END_HEREDOC > src/main/res/layout/services_example_fragment.xml
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Loading..."
+            android:freezesText="true"
             android:padding="20dp"
             android:layout_below="@+id/services_example_fragment_json_title_textview"
             android:layout_centerHorizontal="true"

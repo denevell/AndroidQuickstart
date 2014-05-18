@@ -55,6 +55,7 @@ Todo
 - Fragment navigation
 
 - Swipe to refresh / Loading icon
+- Time it takes to show play services licence
 - List view with images
 - Image downloading and caching
 - Checks for connectivity
