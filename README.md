@@ -47,17 +47,19 @@ Android Studio integration
 Todo
 ----
 
-- Cache service results
+- Fragment navigation
+---
 - Take a picture with camera
 - Navigation menu, on the right
-- Fragment navigation
-
+- Cache service results
+---
 - Swipe to refresh / Loading icon
 - Time it takes to show play services licence
 - List view with images
 - Image downloading and caching
 - Checks for connectivity
 - Navigation menu sub menus
+- Tablet fragment changes
 - Espresso imports
 - Espresso test
 - Robolectric tests
