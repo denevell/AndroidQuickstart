@@ -58,7 +58,7 @@ mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/services
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/networking
-mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragment
+mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragments
 mkdir -p src/main/java/android/support/v4/app
 mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
@@ -200,6 +200,9 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="drawer_item_one_title">Preferences view</string>
     <string name="view_pager_title">View Pager</string>
+    <string name="subfrag1_title">SubFrag1</string>
+    <string name="subfrag2_title">SubFrag2</string>
+    <string name="subfrag3_title">SubFrag3</string>
 </resources>
 END_HEREDOC
 
@@ -961,9 +964,11 @@ public class NavManagerFragmentActivity extends FragmentActivity
 	private DrawerLayout mDrawerLayout;
 	private View mNavDrawerView;
 	// So we have a reference to the previously switched to fragment to save its state, or saving current state on onSaveInstanceState
-	private Fragment mCurrentFragment; 
-	// Save fragment states for when we switch to another one
-	private HashMap<String, SavedState> mSavedStates = new HashMap<>();
+    private Fragment mCurrentFragment; 
+    // Save fragment states for when we switch to another one
+    private HashMap<String, SavedState> mSavedStates = new HashMap<>();
+    private HashMap<String, Bundle> mSavedArguments = new HashMap<>();
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -979,11 +984,16 @@ public class NavManagerFragmentActivity extends FragmentActivity
     protected void onSaveInstanceState(Bundle outState) {
     	super.onSaveInstanceState(outState);
     	// Get the state of the currently active fragment and save it.
-	SavedState savedState = getSupportFragmentManager().saveFragmentInstanceState(mCurrentFragment);
-	mSavedStates.put(mCurrentFragment.getClass().getSimpleName(), savedState);
-	// Now save all the saved fragment states
+	    SavedState savedState = getSupportFragmentManager().saveFragmentInstanceState(mCurrentFragment);
+	    mSavedStates.put(mCurrentFragment.getClass().getSimpleName(), savedState);
+        if(mCurrentFragment!=null && mCurrentFragment.getArguments()!=null) {
+            mSavedArguments.put(mCurrentFragment.getClass().getSimpleName(), mCurrentFragment.getArguments());
+        }
+	    // Now save all the saved fragment states
     	outState.putStringArray("savedStateStrings", mSavedStates.keySet().toArray(new String[0]));
     	outState.putParcelableArray("savedStateStates", mSavedStates.values().toArray(new Parcelable[0]));
+        outState.putStringArray("savedArgumentsStrings", mSavedArguments.keySet().toArray(new String[0]));
+        outState.putParcelableArray("savedArguments", mSavedArguments.values().toArray(new Parcelable[0]));
     }
     
     @Override
@@ -994,7 +1004,12 @@ public class NavManagerFragmentActivity extends FragmentActivity
     	String[] strings = savedInstanceState.getStringArray("savedStateStrings");
     	for (int i = 0; i < strings.length; i++) {
     		mSavedStates.put(strings[i], (SavedState) states[i]);
-	}
+    	}
+        states = savedInstanceState.getParcelableArray("savedArguments");
+        strings = savedInstanceState.getStringArray("savedArgumentsStrings");
+        for (int i = 0; i < strings.length; i++) {
+            mSavedArguments.put(strings[i], (Bundle) states[i]);
+        }
     }
     
     /**
@@ -1117,6 +1132,9 @@ public class NavManagerFragmentActivity extends FragmentActivity
 	if(mCurrentFragment!=null) {
 		SavedState savedState = getSupportFragmentManager().saveFragmentInstanceState(mCurrentFragment);
 		mSavedStates.put(mCurrentFragment.getClass().getSimpleName(), savedState);
+        	if(mCurrentFragment.getArguments()!=null) {
+            		mSavedArguments.put(mCurrentFragment.getClass().getSimpleName(), mCurrentFragment.getArguments());
+        	}
 	}
 	getSupportFragmentManager().beginTransaction()
                 .replace(R.id.container, fragment, fragment.getClass().getSimpleName())
@@ -1127,14 +1145,19 @@ public class NavManagerFragmentActivity extends FragmentActivity
         if(mNavDrawerView!=null && mDrawerLayout != null) mDrawerLayout.closeDrawer(mNavDrawerView);
     }
 
-    /**
+   /**
      * Sets the fragments saved state by looking up its name in mSavedState.
      */
     private void setFragmentsSavedState(Fragment fragment) {
         SavedState savedState = mSavedStates.get(fragment.getClass().getSimpleName());
+        Bundle savedArgument = mSavedArguments.get(fragment.getClass().getSimpleName());
         if(savedState!=null) {
             FixedSavedState pp = new FixedSavedState(savedState);
             fragment.setInitialSavedState(pp);
+            fragment.setArguments(savedArgument);
+        }
+        if(fragment.getArguments()==null) {
+            fragment.setArguments(new Bundle());
         }
     }
 
@@ -2125,6 +2148,8 @@ import $PROJECT_PACKAGE_BASE_JAVA.R;
 
 public class ParentFragment extends Fragment implements SubFragmentInteractions, ChildFragmentsManager {
 
+    private static final String ARG_NUMBER = "number";
+    private static final String ARG_BOOLEAN = "boolean";
     private ChildFragmentsManager mChildFragmentsManager;
     private boolean mMember;
     private int mNumber;
@@ -2145,6 +2170,24 @@ public class ParentFragment extends Fragment implements SubFragmentInteractions,
                     .beginTransaction()
                     .replace(R.id.subfragholder, new SubFragment1(), simpleName)
                     .commit();
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if(getArguments()!=null) {
+            getArguments().putInt(ARG_NUMBER, mNumber);
+            getArguments().putBoolean(ARG_BOOLEAN, mMember);
+        }
+    }
+
+    @Override
+    public void onViewStateRestored(Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        if(getArguments()!=null) {
+            mNumber = getArguments().getInt(ARG_NUMBER);
+            mMember = getArguments().getBoolean(ARG_BOOLEAN);
         }
     }
 
@@ -2393,6 +2436,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.app.Activity;
 
 public class SubFragment3 extends Fragment {
 
@@ -2542,7 +2588,7 @@ if [ -h google_play ]; then
 fi
 ln -s $ANDROID_HOME/extras/google/google_play_services/libproject/google-play-services_lib/ google_play
 # PagerSlidingTabStrip import
-git clone https://github.com/astuetz/PagerSlidingTabStrip.git -b v1.0.1
+//git clone https://github.com/astuetz/PagerSlidingTabStrip.git -b v1.0.1
 echo "android.library.reference.1=../../actionbar_appcompat" >> PagerSlidingTabStrip/library/project.properties 
 sed -i s/target=.*/target=android-19/g PagerSlidingTabStrip/library/project.properties
 cat << END_HEREDOC > PagerSlidingTabStrip/library/.project
