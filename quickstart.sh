@@ -58,6 +58,7 @@ mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/utils
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/nav
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/services
 mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/networking
+mkdir -p src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragment
 mkdir -p src/main/java/android/support/v4/app
 mkdir -p src/otherBuildType/res/values/
 if [ -h res ]; then 
@@ -194,6 +195,7 @@ cat << END_HEREDOC > src/main/res/values/strings.xml
     <string name="nav_item1">Preferences stuff</string>
     <string name="nav_item2">View Pager</string>
     <string name="nav_item3">Google Maps</string>
+    <string name="nav_item4">Fragment Nav</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="drawer_item_one_title">Preferences view</string>
@@ -928,6 +930,7 @@ import $PROJECT_PACKAGE_BASE_JAVA.nav.NavigationDrawerCallbacks;
 import $PROJECT_PACKAGE_BASE_JAVA.ViewPagerFragment;
 import $PROJECT_PACKAGE_BASE_JAVA.PreferencesActivity;
 import $PROJECT_PACKAGE_BASE_JAVA.MapFragment;
+import $PROJECT_PACKAGE_BASE_JAVA.subfragments.ParentFragment;
 import $PROJECT_PACKAGE_BASE_JAVA.LicencesActivity;
 import $PROJECT_PACKAGE_BASE_JAVA.PreferencesViewFragment;
 import $PROJECT_PACKAGE_BASE_JAVA.R;
@@ -1099,6 +1102,10 @@ public class NavManagerFragmentActivity extends FragmentActivity
 		break;
 		case R.id.section_three_fragment:
     	   	fragment = new MapFragment();
+    	   	setFragmentsSavedState(fragment);
+		break;
+		case R.id.section_four_fragment:
+    	   	fragment = new ParentFragment();
     	   	setFragmentsSavedState(fragment);
 		break;
 		default:
@@ -1317,6 +1324,7 @@ public class NavigationDrawerFragment extends Fragment {
                         getString(R.string.nav_item1),
                         getString(R.string.nav_item2),
                         getString(R.string.nav_item3),
+                        getString(R.string.nav_item4),
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);
         return mDrawerListView;
@@ -1451,6 +1459,9 @@ public class NavigationDrawerFragment extends Fragment {
 			case 2:
 				fragmentResourceId = R.id.section_three_fragment;
 				break;
+			case 3:
+				fragmentResourceId = R.id.section_four_fragment;
+				break;
 			default:
 				fragmentResourceId = R.id.section_one_fragment;
 				Log.e(getClass().getSimpleName(), "Couldn't match listview to fragment id.");
@@ -1563,6 +1574,7 @@ cat << END_HEREDOC > src/main/res/values/ids.xml
     <item type="id" name="section_one_fragment" />
     <item type="id" name="section_two_fragment" />
     <item type="id" name="section_three_fragment" />
+    <item type="id" name="section_four_fragment" />
 </resources>
 END_HEREDOC
 
@@ -2092,6 +2104,371 @@ cat << END_HEREDOC > src/main/res/values/dimens.xml
 END_HEREDOC
 
 
+
+
+echo "###---> Fragment navigation (parent fragment and child fragment that calls methods on that to do stuff"a
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragments/ParentFragment.java
+package $PROJECT_PACKAGE_BASE_JAVA.subfragments;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+
+import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+public class ParentFragment extends Fragment implements SubFragmentInteractions {
+
+    private ChildFragmentsManager mChildFragmentsManager;
+    private boolean mMember;
+    private int mNumber;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.subfragholder, container, false);
+        setHasOptionsMenu(true);
+        return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if(getChildFragmentManager().getFragments()==null) {
+            String simpleName = SubFragment1.class.getSimpleName();
+            getChildFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.subfragholder, new SubFragment1(), simpleName)
+                    .commit();
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mChildFragmentsManager = (ChildFragmentsManager) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException("Activity must implement ChildFragmentsManager.");
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        if (mChildFragmentsManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
+            mChildFragmentsManager.setTitleFromChild(getString(R.string.nav_item4));
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId()==android.R.id.home && getChildFragmentManager().getBackStackEntryCount()>0) {
+            getChildFragmentManager().popBackStack();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSubmitMember(boolean member) {
+        mMember = member;
+        String simpleName = SubFragment2.class.getSimpleName();
+        Bundle b = new Bundle();
+        SubFragment2 fragment = new SubFragment2();
+        fragment.setArguments(b); // So it itself can set arguments
+        getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.subfragholder, fragment, SubFragment2.class.getSimpleName())
+                .addToBackStack(simpleName)
+                .commit();
+    }
+
+    @Override
+    public void onSubmitAge(int age) {
+        mNumber = age;
+        String simpleName = SubFragment2.class.getSimpleName();
+        SubFragment3 fragment = new SubFragment3();
+        Bundle b = new Bundle();
+        b.putBoolean(SubFragment3.ARG_IS_MEMBER, mMember);
+        b.putInt(SubFragment3.ARG_NUMBER, mNumber);
+        fragment.setArguments(b);
+        getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.subfragholder, fragment, SubFragment3.class.getSimpleName())
+                .addToBackStack(simpleName)
+                .commit();
+    }
+
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragments/SubFragment1.java
+package $PROJECT_PACKAGE_BASE_JAVA.subfragments;
+
+import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Switch;
+
+public class SubFragment1 extends Fragment {
+    private SubFragmentInteractions mParentInteractions;
+    private Switch mMemberSwitch;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.subfrag1, container, false);
+        setHasOptionsMenu(true);
+        mMemberSwitch = (Switch) v.findViewById(R.id.subfrag1_member_switch);
+        return v;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if(getParentFragment()!=null && getParentFragment() instanceof SubFragmentInteractions) {
+            mParentInteractions = (SubFragmentInteractions) getParentFragment();
+        } else {
+            throw new RuntimeException("Parent fragment must implement SubFragmentInteractions");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mParentInteractions = null;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.subfrag1_options, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId()==R.id.action_subfrag1_member_submit) {
+            mParentInteractions.onSubmitMember(mMemberSwitch.isChecked());
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+}
+
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragments/SubFragment2.java
+package $PROJECT_PACKAGE_BASE_JAVA.subfragments;
+
+import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+import android.app.Activity;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.NumberPicker;
+
+public class SubFragment2 extends Fragment {
+    private static final String ARG_NUM = "numberpicker";
+    private NumberPicker mNumberPicker;
+    private SubFragmentInteractions mParentInteractions;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        View v = inflater.inflate(R.layout.subfrag2, container, false);
+        mNumberPicker = (NumberPicker) v.findViewById(R.id.subfrag2_numberpicker);
+        return v;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(mNumberPicker.getMaxValue()==0) {
+            mNumberPicker.setMaxValue(10);
+            mNumberPicker.setMinValue(0);
+        }
+        if(getArguments()!=null) {
+            mNumberPicker.setValue(getArguments().getInt(ARG_NUM));
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if(getArguments()!=null) {
+            getArguments().putInt(ARG_NUM, mNumberPicker.getValue());
+        }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if(getParentFragment()!=null && getParentFragment() instanceof SubFragmentInteractions) {
+            mParentInteractions = (SubFragmentInteractions) getParentFragment();
+        } else {
+            throw new RuntimeException("Parent fragment must implement SubFragmentInteractions");
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.subfrag1_options, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if(item.getItemId()==R.id.action_subfrag1_member_submit) {
+            mParentInteractions.onSubmitAge(mNumberPicker.getValue());
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+}
+
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragments/SubFragment3.java
+package $PROJECT_PACKAGE_BASE_JAVA.subfragments;
+
+import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
+import $PROJECT_PACKAGE_BASE_JAVA.R;
+
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+public class SubFragment3 extends Fragment {
+
+    public static final java.lang.String ARG_IS_MEMBER = "member";
+    public static final java.lang.String ARG_NUMBER = "number";
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.subfrag3, container, false);
+        boolean member = getArguments().getBoolean(ARG_IS_MEMBER);
+        String text = "";
+        if(member) {
+            text += "You're a member";
+        } else {
+            text += "You're not a member";
+        }
+        int number = getArguments().getInt(ARG_NUMBER);
+        text += " with " + number + " pieces of invisible silver.";
+        TextView textView = (TextView) v.findViewById(R.id.subfrag3_textview);
+        textView.setText(text);
+        return v;
+    }
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/java/$PROJECT_PACKAGE_BASE_DIRS/subfragments/SubFragmentInteractions.java
+package $PROJECT_PACKAGE_BASE_JAVA.subfragments;
+
+public interface SubFragmentInteractions {
+    void onSubmitMember(boolean member);
+    void onSubmitAge(int age);
+}
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/subfrag1.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/subfrag1rel"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <Switch
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOn="Yes, I'm a member"
+        android:textOff="Oh no"
+        android:id="@+id/subfrag1_member_switch"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:checked="false" />
+
+</RelativeLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/subfrag2.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:id="@+id/subfrag2_rl">
+
+    <NumberPicker
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/subfrag2_numberpicker"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="true" />
+</RelativeLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/subfrag3.xml
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Large Text"
+        android:id="@+id/subfrag3_textview"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
+</RelativeLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/layout/subfragholder.xml
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/subfragholderrel"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <FrameLayout
+        android:id="@+id/subfragholder"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        ></FrameLayout>
+</RelativeLayout>
+END_HEREDOC
+
+cat << END_HEREDOC > src/main/res/menu/subfrag1_options.xml
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/action_subfrag1_member_submit" android:title="Next"
+        android:showAsAction="always"/>
+</menu>
+END_HEREDOC
 
 echo "###---> Creating directory of projects for Eclipse to import (would be AARs in Gradle)"
 
