@@ -10,6 +10,7 @@ Features
 - Custom view with attributes
 - View Pager with PagerSlidingTabStrip
 - Navigation drawer with saved fragment state
+- Navigation with inner fragments
 - Retfrofit and OkHttp for networking
 - A service abstraction using Otto events to pass service responses error
 - Preferences activity
