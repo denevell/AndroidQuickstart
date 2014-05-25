@@ -1059,6 +1059,17 @@ public class NavManagerFragmentActivity extends FragmentActivity
     }
 
     /**
+     * Used so the drawer can know whether to show its drawer affordance or not.
+     */ 
+    @Override
+    public boolean currentFragmentHasBackstack() {
+        if(mCurrentFragment!=null && mCurrentFragment.getChildFragmentManager()!=null && mCurrentFragment.getChildFragmentManager().getBackStackEntryCount()>0) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * Called by the drawer fragment if it thinks we haven't learnt it yet.
      */
     @Override
@@ -1391,10 +1402,8 @@ public class NavigationDrawerFragment extends Fragment {
 	}
 
     /**
-     * When the drawer is open, set the title from the string resources, and save the old 
-     * title in order to restore it later.
-     * Else, if we have a previous activity title to restore, i.e. we've close the nav drawer,
-     * and want to restore the previously visible fragment's title, restore it.
+     * When the parent says we can set our options and actionbar menu, do so. 
+     * If we can't, then ask the parent if the current fragment has a backstack - if so disable our drawer indicator.
      */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -1404,6 +1413,8 @@ public class NavigationDrawerFragment extends Fragment {
             actionBar.setDisplayShowTitleEnabled(true);
             actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
             actionBar.setTitle(R.string.app_name);
+        } else if(mDrawerHolderCallbacks != null) {
+            mDrawerToggle.setDrawerIndicatorEnabled(!mDrawerHolderCallbacks.currentFragmentHasBackstack());
         }
         super.onCreateOptionsMenu(menu, inflater);
     }
@@ -1493,6 +1504,10 @@ package $PROJECT_PACKAGE_BASE_JAVA.nav;
      * has not yet learnt of the drawer, the main Fragment, depending on implementation, then opens it to show the user.
      */
     void onUserHasntLearntAboutDrawer();
+    /**
+     * Used so the NavigationDrawer can know if it should draw the 'burger' affordance or not
+     */
+    boolean currentFragmentHasBackstack();
 }
 
 END_HEREDOC
