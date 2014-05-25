@@ -2123,7 +2123,7 @@ import android.view.ViewGroup;
 import $PROJECT_PACKAGE_BASE_JAVA.ChildFragmentsManager;
 import $PROJECT_PACKAGE_BASE_JAVA.R;
 
-public class ParentFragment extends Fragment implements SubFragmentInteractions {
+public class ParentFragment extends Fragment implements SubFragmentInteractions, ChildFragmentsManager {
 
     private ChildFragmentsManager mChildFragmentsManager;
     private boolean mMember;
@@ -2205,6 +2205,19 @@ public class ParentFragment extends Fragment implements SubFragmentInteractions 
                 .commit();
     }
 
+    @Override
+    public boolean shouldChildSetOptionsMenuAndActionBar(int fragmentType, String fragmentName) {
+        if(mChildFragmentsManager!=null) {
+            return mChildFragmentsManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null);
+        }
+        return false;
+    }
+
+    @Override
+    public void setTitleFromChild(String title) {
+        mChildFragmentsManager.setTitleFromChild(title);
+    }
+        
 }
 END_HEREDOC
 
@@ -2227,6 +2240,7 @@ import android.widget.Switch;
 
 public class SubFragment1 extends Fragment {
     private SubFragmentInteractions mParentInteractions;
+    private ChildFragmentsManager mChildFragmentManager;
     private Switch mMemberSwitch;
 
     @Override
@@ -2240,10 +2254,11 @@ public class SubFragment1 extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        if(getParentFragment()!=null && getParentFragment() instanceof SubFragmentInteractions) {
+        if(getParentFragment()!=null && getParentFragment() instanceof SubFragmentInteractions && getParentFragment() instanceof ChildFragmentsManager) {
             mParentInteractions = (SubFragmentInteractions) getParentFragment();
+            mChildFragmentManager = (ChildFragmentsManager) getParentFragment();
         } else {
-            throw new RuntimeException("Parent fragment must implement SubFragmentInteractions");
+            throw new RuntimeException("Parent fragment must implement SubFragmentInteractions and ChildFragmentManager");
         }
     }
 
@@ -2251,13 +2266,18 @@ public class SubFragment1 extends Fragment {
     public void onDetach() {
         super.onDetach();
         mParentInteractions = null;
+        mChildFragmentManager = null;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.subfrag1_options, menu);
+        if(mChildFragmentManager!=null && mChildFragmentManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
+            if(mChildFragmentManager!=null) mChildFragmentManager.setTitleFromChild(getString(R.string.subfrag1_title));
+            inflater.inflate(R.menu.subfrag1_options, menu);
+        }
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -2292,6 +2312,7 @@ public class SubFragment2 extends Fragment {
     private static final String ARG_NUM = "numberpicker";
     private NumberPicker mNumberPicker;
     private SubFragmentInteractions mParentInteractions;
+    private ChildFragmentsManager mChildFragmentManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -2324,17 +2345,28 @@ public class SubFragment2 extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        if(getParentFragment()!=null && getParentFragment() instanceof SubFragmentInteractions) {
+        if(getParentFragment()!=null && getParentFragment() instanceof SubFragmentInteractions && getParentFragment() instanceof ChildFragmentsManager) {
             mParentInteractions = (SubFragmentInteractions) getParentFragment();
+            mChildFragmentManager = (ChildFragmentsManager) getParentFragment();
         } else {
-            throw new RuntimeException("Parent fragment must implement SubFragmentInteractions");
+            throw new RuntimeException("Parent fragment must implement SubFragmentInteractions and ChildFragmentManager");
         }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mParentInteractions = null;
+        mChildFragmentManager = null;
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.subfrag1_options, menu);
+        if(mChildFragmentManager!=null && mChildFragmentManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
+            if(mChildFragmentManager!=null) mChildFragmentManager.setTitleFromChild(getString(R.string.subfrag2_title));
+            inflater.inflate(R.menu.subfrag1_options, menu);
+        }
     }
 
     @Override
@@ -2366,6 +2398,7 @@ public class SubFragment3 extends Fragment {
 
     public static final java.lang.String ARG_IS_MEMBER = "member";
     public static final java.lang.String ARG_NUMBER = "number";
+    private ChildFragmentsManager mChildFragmentManager;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -2383,6 +2416,31 @@ public class SubFragment3 extends Fragment {
         textView.setText(text);
         return v;
     }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        if(getParentFragment()!=null && getParentFragment() instanceof ChildFragmentsManager) {
+            mChildFragmentManager = (ChildFragmentsManager) getParentFragment();
+        } else {
+            throw new RuntimeException("Parent fragment must implement ChildFragmentManager");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mChildFragmentManager = null;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        if(mChildFragmentManager!=null && mChildFragmentManager.shouldChildSetOptionsMenuAndActionBar(ChildFragmentsManager.NORMAL_FRAGMENT, null)) {
+            mChildFragmentManager.setTitleFromChild(getString(R.string.subfrag3_title));
+        }
+    }
+
 }
 END_HEREDOC
 
